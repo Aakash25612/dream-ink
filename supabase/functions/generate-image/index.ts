@@ -19,21 +19,22 @@ serve(async (req) => {
     console.log('Generating image with prompt:', prompt);
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${geminiApiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${geminiApiKey}`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          instances: [
+          contents: [
             {
-              prompt: prompt,
+              parts: [
+                {
+                  text: prompt
+                }
+              ]
             }
-          ],
-          parameters: {
-            sampleCount: 1,
-          }
+          ]
         }),
       }
     );
@@ -45,7 +46,17 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const imageBase64 = data.predictions[0].bytesBase64Encoded;
+    
+    // Extract the base64 image from the response
+    const imagePart = data.candidates?.[0]?.content?.parts?.find(
+      (part: any) => part.inlineData
+    );
+    
+    if (!imagePart?.inlineData?.data) {
+      throw new Error('No image data in response');
+    }
+    
+    const imageBase64 = imagePart.inlineData.data;
 
     return new Response(
       JSON.stringify({ image: `data:image/png;base64,${imageBase64}` }),
