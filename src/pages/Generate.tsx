@@ -24,17 +24,44 @@ const Generate = () => {
     }
 
     setIsGenerating(true);
+    setGeneratedImage(null);
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsGenerating(false);
+    try {
+      const response = await fetch(
+        `https://wahdjskwegycbrxiyjjg.supabase.co/functions/v1/generate-image`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ prompt: prompt.trim() }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to generate image');
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setGeneratedImage(data.image);
       toast({
         title: "Image Generated",
         description: "Your AI image is ready!",
       });
-      // In a real app, this would be the actual generated image URL
-      setGeneratedImage("https://images.unsplash.com/photo-1547954575-855750c57bd3?w=800&h=800&fit=crop");
-    }, 3000);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to generate image",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleLogout = () => {
