@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Globe, Zap, Gift, Image as ImageIcon, User, Menu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Home = () => {
   const [prompt, setPrompt] = useState("");
@@ -45,13 +46,27 @@ const Home = () => {
         throw new Error(data.error);
       }
 
+      // Save to database
+      const { error: dbError } = await supabase
+        .from('creations')
+        .insert({
+          prompt: prompt.trim(),
+          image_url: data.image,
+          user_id: null // Will be set when auth is implemented
+        });
+
+      if (dbError) {
+        console.error('Failed to save to database:', dbError);
+        // Still show success even if DB save fails
+      }
+
       toast({
         title: "Image Generated",
         description: "Your creation is ready!",
       });
 
-      // Navigate to creations page with the generated image
-      navigate("/creations", { state: { generatedImage: data.image, prompt } });
+      // Navigate to creations page
+      navigate("/creations");
     } catch (error) {
       toast({
         title: "Error",
