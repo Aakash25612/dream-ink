@@ -1,21 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Globe, ArrowLeft } from "lucide-react";
+import { Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Space = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,hsl(220_60%_15%),hsl(220_40%_5%))] flex flex-col p-4">
-      {/* Header */}
-      <header className="flex items-center gap-4 mb-8">
-        <button
-          onClick={() => navigate("/home")}
-          className="w-10 h-10 rounded-full bg-card hover:bg-card/80 flex items-center justify-center"
-        >
-          <ArrowLeft className="w-5 h-5 text-foreground" />
-        </button>
-      </header>
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,hsl(220_60%_15%),hsl(220_40%_5%))] flex flex-col items-center justify-between p-4">
       {/* Main Content */}
       <div className="flex-1 flex flex-col items-center justify-center space-y-12 max-w-xl">
         {/* Icon */}

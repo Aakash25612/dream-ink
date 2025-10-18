@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Check, ArrowLeft } from "lucide-react";
+import { Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Pricing = () => {
@@ -44,14 +44,6 @@ const Pricing = () => {
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,hsl(220_60%_15%),hsl(220_40%_5%))] p-4 md:p-8">
       {/* Header */}
-      <header className="flex items-center gap-4 mb-8 max-w-6xl mx-auto">
-        <button
-          onClick={() => navigate("/home")}
-          className="w-10 h-10 rounded-full bg-card hover:bg-card/80 flex items-center justify-center"
-        >
-          <ArrowLeft className="w-5 h-5 text-foreground" />
-        </button>
-      </header>
       <div className="max-w-6xl mx-auto text-center space-y-4 mb-12">
         <h1 className="text-3xl md:text-4xl font-light">
           <span className="bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
