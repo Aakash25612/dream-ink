@@ -40,7 +40,7 @@ const Landing = () => {
 
           {/* CTA Button */}
           <Button 
-            onClick={() => navigate("/home")}
+            onClick={() => navigate("/auth")}
             size="lg"
             className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-12 py-6 rounded-full mt-8"
           >
