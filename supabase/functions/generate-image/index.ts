@@ -46,6 +46,7 @@ serve(async (req) => {
     }
 
     const data = await response.json();
+    console.log('Gemini API response structure:', JSON.stringify(data, null, 2));
     
     // Extract the base64 image from the response
     const imagePart = data.candidates?.[0]?.content?.parts?.find(
@@ -53,10 +54,13 @@ serve(async (req) => {
     );
     
     if (!imagePart?.inlineData?.data) {
+      console.error('Failed to find image data. Full response:', JSON.stringify(data));
+      console.error('Candidates:', data.candidates);
       throw new Error('No image data in response');
     }
     
     const imageBase64 = imagePart.inlineData.data;
+    console.log('Successfully extracted image, base64 length:', imageBase64.length);
 
     return new Response(
       JSON.stringify({ image: `data:image/png;base64,${imageBase64}` }),
