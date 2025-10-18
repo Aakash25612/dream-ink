@@ -30,11 +30,14 @@ serve(async (req) => {
             {
               parts: [
                 {
-                  text: prompt
+                  text: `Generate an image: ${prompt}`
                 }
               ]
             }
-          ]
+          ],
+          generationConfig: {
+            responseModalities: ["image"]
+          }
         }),
       }
     );
