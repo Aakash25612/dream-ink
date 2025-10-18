@@ -22,10 +22,6 @@ const Help = () => {
         <p className="text-muted-foreground text-lg">Help & Support page coming soon.</p>
       </div>
 
-      {/* Footer */}
-      <footer className="text-muted-foreground text-xs text-center py-8 mt-12">
-        © 2025 Cretera — Designed & Created by Aradhya Garhewal. All rights reserved.
-      </footer>
     </div>
   );
 };

@@ -149,10 +149,6 @@ const Creations = () => {
         )}
       </div>
 
-      {/* Footer */}
-      <footer className="text-muted-foreground text-xs text-center py-8 mt-12">
-        © 2025 Cretera — Designed & Created by Aradhya Garhewal. All rights reserved.
-      </footer>
     </div>
   );
 };

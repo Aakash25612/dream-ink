@@ -49,10 +49,6 @@ const Landing = () => {
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="text-muted-foreground text-sm py-6">
-        © 2025 Cretera — Designed & Created by Aradhya Garhewal. All rights reserved.
-      </footer>
     </div>
   );
 };

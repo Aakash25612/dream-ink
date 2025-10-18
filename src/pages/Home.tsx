@@ -143,10 +143,6 @@ const Home = () => {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="text-muted-foreground text-xs text-center py-4 px-4">
-        © 2025 Cretera — Designed & Created by Aradhya Garhewal. All rights reserved.
-      </footer>
     </div>;
 };
 export default Home;
