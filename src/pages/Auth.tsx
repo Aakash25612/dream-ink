@@ -10,21 +10,21 @@ const Auth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate("/home");
-      }
-    });
-
-    // Listen for auth changes
+    // Listen for auth changes first
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
+      if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
         toast({
           title: "Success",
           description: "Signed in successfully!",
         });
-        navigate("/home");
+        navigate("/home", { replace: true });
+      }
+    });
+
+    // Then check if user is already logged in
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate("/home", { replace: true });
       }
     });
 
