@@ -10,12 +10,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useBilling } from "@/hooks/useBilling";
+import { PlanType, PeriodType } from "@/services/billingService";
 
 const Pricing = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"monthly" | "weekly">("monthly");
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState("");
+  const { isNative, purchaseSubscription, loading } = useBilling();
 
   const monthlyPlans = [
     {
@@ -97,11 +100,7 @@ const Pricing = () => {
 
   const plans = activeTab === "monthly" ? monthlyPlans : weeklyPlans;
 
-  const handlePlanSelect = async (planName: string) => {
-    setSelectedPlan(planName);
-    setShowConfirmation(true);
-    
-    // Allocate subscription credits
+  const allocateCredits = async (planName: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -124,11 +123,35 @@ const Pricing = () => {
     } catch (error) {
       console.error('Error allocating credits:', error);
     }
+  };
 
-    setTimeout(() => {
-      setShowConfirmation(false);
-      navigate("/home");
-    }, 3000);
+  const handlePlanSelect = async (planName: string) => {
+    setSelectedPlan(planName);
+    
+    if (isNative) {
+      // Native Android - use Google Play Billing
+      const success = await purchaseSubscription(
+        planName.toLowerCase() as PlanType,
+        activeTab as PeriodType,
+        async (purchaseToken) => {
+          // Purchase successful, allocate credits
+          await allocateCredits(planName);
+          setShowConfirmation(true);
+          setTimeout(() => {
+            setShowConfirmation(false);
+            navigate("/home");
+          }, 3000);
+        }
+      );
+    } else {
+      // Web flow - allocate credits directly
+      await allocateCredits(planName);
+      setShowConfirmation(true);
+      setTimeout(() => {
+        setShowConfirmation(false);
+        navigate("/home");
+      }, 3000);
+    }
   };
 
   return (
@@ -240,8 +263,9 @@ const Pricing = () => {
             <Button
               onClick={() => handlePlanSelect(plan.name)}
               className={`w-full rounded-full py-6 ${plan.buttonClass}`}
+              disabled={loading}
             >
-              {plan.buttonText}
+              {loading ? "Processing..." : plan.buttonText}
             </Button>
           </div>
         ))}
