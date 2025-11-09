@@ -22,7 +22,7 @@ const Pricing = () => {
       icon: "👤",
       price: "₹299",
       period: "/mo",
-      tagline: "🎬 The cost of one movie ticket",
+      tagline: "The cost of a movie ticket 🎫",
       features: ["210 images / month", "7 images / day"],
       savings: "Save up to ₹1,000 / month",
       buttonText: "Start Creating",
@@ -34,7 +34,7 @@ const Pricing = () => {
       icon: "✏️",
       price: "₹499",
       period: "/mo",
-      tagline: "📺 The cost of one OTT subscription",
+      tagline: "The cost of a OTT subscription 📺",
       features: ["420 images / month", "14 images / day"],
       savings: "Save up to ₹2,500 / month",
       buttonText: "Go Pro ⚡",
@@ -46,7 +46,7 @@ const Pricing = () => {
       icon: "💎",
       price: "₹999",
       period: "/mo",
-      tagline: "✨ Unlock infinite creativity",
+      tagline: "The cost of one dinner out 🍽️",
       features: ["1020 images / month", "34 images / day"],
       savings: "Save up to ₹15,000 / month",
       buttonText: "Unlock Creativity ✨",
@@ -61,7 +61,7 @@ const Pricing = () => {
       icon: "👤",
       price: "₹99",
       period: "/wk",
-      tagline: "☕ The cost of a few coffees",
+      tagline: "The cost of a cup of coffee ☕",
       features: ["63 images / week", "9 images / day"],
       savings: "Perfect for casual creators",
       buttonText: "Start Creating",
@@ -73,7 +73,7 @@ const Pricing = () => {
       icon: "✏️",
       price: "₹199",
       period: "/wk",
-      tagline: "🍕 The cost of a pizza night",
+      tagline: "The cost of a burger 🍔",
       features: ["133 images / week", "19 images / day"],
       savings: "Most flexible option",
       buttonText: "Go Pro ⚡",
@@ -85,7 +85,7 @@ const Pricing = () => {
       icon: "💎",
       price: "₹399",
       period: "/wk",
-      tagline: "🚀 Maximum creative freedom",
+      tagline: "The cost of a pizza 🍕",
       features: ["329 images / week", "47 images / day"],
       savings: "For serious creators",
       buttonText: "Unlock Creativity ✨",
@@ -124,16 +124,16 @@ const Pricing = () => {
         </h1>
         <div className="text-foreground/80 text-sm md:text-base max-w-2xl mx-auto space-y-2">
           <p>
-            Unlock high-quality, watermark-free AI creations at an affordable cost —
-            renewed daily, with no queue, no token, and zero public visibility.
+            Unlock high-quality, watermark-free, swift AI creations — at an affordable cost.
+            Renewed daily, with no queue, no token, and zero public visibility.
           </p>
-          <p className="font-light">Swift. Private. Limitless.</p>
-          <p className="text-xs">Cretera — Your Private World of Creation.</p>
+          <p className="font-light">Your Imagination. Your Creation.</p>
+          <p className="text-xs">CRETERA — Your Private World of Creation.</p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="max-w-md mx-auto mb-8">
+      <div className="max-w-md mx-auto mb-6">
         <div className="bg-card border border-border rounded-full p-1 flex">
           <button
             onClick={() => setActiveTab("monthly")}
@@ -156,6 +156,12 @@ const Pricing = () => {
             Weekly Plans
           </button>
         </div>
+      </div>
+
+      {/* Taglines Below Tabs */}
+      <div className="max-w-2xl mx-auto text-center space-y-1 mb-8">
+        <p className="text-foreground/90 text-sm">Your creative energy renews every day.</p>
+        <p className="text-foreground/90 text-sm">Create more. Spend less.</p>
       </div>
 
       {/* Pricing Cards */}
