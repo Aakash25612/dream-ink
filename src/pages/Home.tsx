@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Globe, Zap, Gift, Image as ImageIcon, User, Camera, Upload } from "lucide-react";
+import { Globe, Zap, Gift, Image as ImageIcon, User, Camera, Upload, MoreVertical, Settings, HelpCircle, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 const Home = () => {
   const [prompt, setPrompt] = useState("");
@@ -189,10 +190,37 @@ const Home = () => {
   return <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,hsl(220_60%_15%),hsl(220_40%_5%))] flex flex-col">
       {/* Header */}
       <header className="p-4 flex items-center justify-between">
-        
         <button onClick={() => navigate("/profile")} className="w-10 h-10 rounded-full border-2 border-foreground flex items-center justify-center">
           <User className="w-5 h-5" />
         </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="w-10 h-10 rounded-full border-2 border-foreground flex items-center justify-center">
+              <MoreVertical className="w-5 h-5" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => navigate("/settings")}>
+              <Settings className="w-4 h-4 mr-2" />
+              Settings
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/help")}>
+              <HelpCircle className="w-4 h-4 mr-2" />
+              Help & Support
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              onClick={async () => {
+                await supabase.auth.signOut();
+                navigate("/");
+              }}
+              className="text-red-500"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </header>
 
       {/* Main Content */}

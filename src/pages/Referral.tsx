@@ -98,10 +98,10 @@ const Referral = () => {
         <Card className="bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20 p-8 text-center space-y-4">
           <Gift className="w-16 h-16 text-primary mx-auto" />
           <h2 className="text-2xl font-semibold text-foreground">
-            Earn 2 Credits Per Friend! 🎉
+            Spread Power Of Creation
           </h2>
           <p className="text-foreground/80">
-            Invite your friends to join Cretera and get 2 free credits when they sign up!
+            Invite your friends to Cretera and earn rewards.
           </p>
         </Card>
 

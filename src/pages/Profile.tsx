@@ -47,12 +47,18 @@ const Profile = () => {
     { icon: ImageIcon, label: "My Creations", color: "text-cyan-500", path: "/creations" },
     { 
       icon: Zap, 
-      label: "Subscription", 
-      subtitle: "Power of Creation",
+      label: "Power of Creation", 
+      subtitle: "Manage plan & billing",
       color: "text-purple-500", 
       path: "/pricing" 
     },
-    { icon: Gift, label: "Referrals", color: "text-accent", path: "/referral" },
+    { 
+      icon: Gift, 
+      label: "Cretera Connect", 
+      subtitle: "Spread the Power of Creation",
+      color: "text-accent", 
+      path: "/referral" 
+    },
     { icon: Settings, label: "Settings", color: "text-primary", path: "/settings" },
     { icon: HelpCircle, label: "Help & Support", color: "text-primary", path: "/help" },
     { icon: LogOut, label: "Logout", color: "text-red-500", path: "/" },
@@ -137,8 +143,34 @@ const Profile = () => {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subscription Credits</span>
-                <span className="text-foreground font-medium">{credits.subscription_credits}</span>
+                <span className="text-foreground font-medium">{credits.subscription_credits || 0}</span>
               </div>
+              {credits.subscription_type && (
+                <>
+                  <div className="border-t border-border my-2 pt-2" />
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Active Plan</span>
+                    <span className="text-foreground font-medium capitalize">{credits.subscription_type}</span>
+                  </div>
+                  {credits.daily_limit > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Daily Limit</span>
+                      <span className="text-foreground font-medium">{credits.used_credits_today || 0} / {credits.daily_limit}</span>
+                    </div>
+                  )}
+                  {credits.subscription_end_date && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Renewal Date</span>
+                      <span className="text-foreground font-medium">{new Date(credits.subscription_end_date).toLocaleDateString()}</span>
+                    </div>
+                  )}
+                  <div className="mt-4 p-3 bg-muted/30 rounded-lg">
+                    <p className="text-xs text-muted-foreground italic">
+                      Every cycle begins a new creation. Unused credits reset with your plan, and fresh credits renew automatically for your next journey of creation.
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
           </Card>
         )}

@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Check, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -96,13 +97,38 @@ const Pricing = () => {
 
   const plans = activeTab === "monthly" ? monthlyPlans : weeklyPlans;
 
-  const handlePlanSelect = (planName: string) => {
+  const handlePlanSelect = async (planName: string) => {
     setSelectedPlan(planName);
     setShowConfirmation(true);
+    
+    // Allocate subscription credits
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Calculate end date based on period type
+      const endDate = new Date();
+      if (activeTab === 'monthly') {
+        endDate.setMonth(endDate.getMonth() + 1);
+      } else {
+        endDate.setDate(endDate.getDate() + 7);
+      }
+
+      // Call database function to allocate credits
+      await supabase.rpc('allocate_subscription_credits', {
+        p_user_id: user.id,
+        p_plan_type: planName.toLowerCase(),
+        p_period_type: activeTab,
+        p_end_date: endDate.toISOString()
+      });
+    } catch (error) {
+      console.error('Error allocating credits:', error);
+    }
+
     setTimeout(() => {
       setShowConfirmation(false);
       navigate("/home");
-    }, 2000);
+    }, 3000);
   };
 
   return (
@@ -226,12 +252,23 @@ const Pricing = () => {
         <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-center text-2xl">
-              🎉 Subscription Activated!
+              You have unlocked the Power of Creation. ⚡
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-center text-base">
-              Your <span className="font-semibold text-foreground">{selectedPlan}</span> plan is now active.
-              <br />
-              Start creating amazing content!
+            <AlertDialogDescription className="text-center text-base space-y-2">
+              <p className="text-lg font-semibold text-foreground">
+                {selectedPlan === "Plus" && "Creation Ignited"}
+                {selectedPlan === "Pro" && "Creation Boosted"}
+                {selectedPlan === "Premium" && "Creation Elevated"}
+              </p>
+              <Button 
+                onClick={() => {
+                  setShowConfirmation(false);
+                  navigate("/home");
+                }}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 py-6 mt-4"
+              >
+                Enjoy Seamless Creation
+              </Button>
             </AlertDialogDescription>
           </AlertDialogHeader>
         </AlertDialogContent>

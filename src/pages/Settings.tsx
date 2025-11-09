@@ -78,15 +78,9 @@ const Settings = () => {
           </div>
           
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-foreground">Dark Mode</div>
-                <div className="text-sm text-muted-foreground">Use dark theme</div>
-              </div>
-              <Switch
-                checked={settings.darkMode}
-                onCheckedChange={() => handleToggle("darkMode")}
-              />
+            <div>
+              <div className="text-foreground mb-1">Display</div>
+              <div className="text-sm text-muted-foreground">Uses device default (light/dark)</div>
             </div>
             
             <div className="flex items-center justify-between">
