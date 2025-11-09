@@ -1,45 +1,109 @@
 import { Button } from "@/components/ui/button";
 import { Check, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const Pricing = () => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<"monthly" | "weekly">("monthly");
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState("");
 
-  const plans = [
+  const monthlyPlans = [
     {
       name: "Plus",
       icon: "👤",
       price: "₹299",
       period: "/mo",
-      subtitle: "The cost of one movie ticket",
-      features: ["200 images / month", "70 images / day"],
+      tagline: "🎬 The cost of one movie ticket",
+      features: ["210 images / month", "7 images / day"],
       savings: "Save up to ₹1,000 / month",
       buttonText: "Start Creating",
-      buttonClass: "bg-secondary hover:bg-secondary/80 text-secondary-foreground"
+      buttonClass: "bg-secondary hover:bg-secondary/80 text-secondary-foreground",
+      isPopular: false
     },
     {
       name: "Pro",
       icon: "✏️",
       price: "₹499",
       period: "/mo",
-      subtitle: "The cost of one OTT subscription",
-      features: ["400 images / month", "14 images / day"],
+      tagline: "📺 The cost of one OTT subscription",
+      features: ["420 images / month", "14 images / day"],
       savings: "Save up to ₹2,500 / month",
       buttonText: "Go Pro ⚡",
-      buttonClass: "bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black"
+      buttonClass: "bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black",
+      isPopular: true
     },
     {
       name: "Premium",
       icon: "💎",
       price: "₹999",
       period: "/mo",
-      subtitle: "Unlock infinite creativity",
-      features: ["1000 images / month", "34 images / day"],
+      tagline: "✨ Unlock infinite creativity",
+      features: ["1020 images / month", "34 images / day"],
       savings: "Save up to ₹15,000 / month",
       buttonText: "Unlock Creativity ✨",
-      buttonClass: "bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-foreground"
+      buttonClass: "bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-foreground",
+      isPopular: false
     },
   ];
+
+  const weeklyPlans = [
+    {
+      name: "Plus",
+      icon: "👤",
+      price: "₹99",
+      period: "/wk",
+      tagline: "☕ The cost of a few coffees",
+      features: ["63 images / week", "9 images / day"],
+      savings: "Perfect for casual creators",
+      buttonText: "Start Creating",
+      buttonClass: "bg-secondary hover:bg-secondary/80 text-secondary-foreground",
+      isPopular: false
+    },
+    {
+      name: "Pro",
+      icon: "✏️",
+      price: "₹199",
+      period: "/wk",
+      tagline: "🍕 The cost of a pizza night",
+      features: ["133 images / week", "19 images / day"],
+      savings: "Most flexible option",
+      buttonText: "Go Pro ⚡",
+      buttonClass: "bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black",
+      isPopular: true
+    },
+    {
+      name: "Premium",
+      icon: "💎",
+      price: "₹399",
+      period: "/wk",
+      tagline: "🚀 Maximum creative freedom",
+      features: ["329 images / week", "47 images / day"],
+      savings: "For serious creators",
+      buttonText: "Unlock Creativity ✨",
+      buttonClass: "bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-foreground",
+      isPopular: false
+    },
+  ];
+
+  const plans = activeTab === "monthly" ? monthlyPlans : weeklyPlans;
+
+  const handlePlanSelect = (planName: string) => {
+    setSelectedPlan(planName);
+    setShowConfirmation(true);
+    setTimeout(() => {
+      setShowConfirmation(false);
+      navigate("/home");
+    }, 2000);
+  };
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,hsl(220_60%_15%),hsl(220_40%_5%))] p-4 md:p-8">
@@ -52,7 +116,7 @@ const Pricing = () => {
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
       </header>
-      <div className="max-w-6xl mx-auto text-center space-y-4 mb-12">
+      <div className="max-w-6xl mx-auto text-center space-y-4 mb-8">
         <h1 className="text-3xl md:text-4xl font-light">
           <span className="bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
             Power of Creation
@@ -61,10 +125,36 @@ const Pricing = () => {
         <div className="text-foreground/80 text-sm md:text-base max-w-2xl mx-auto space-y-2">
           <p>
             Unlock high-quality, watermark-free AI creations at an affordable cost —
-            renewed daily, with no queue, no tokin, and zero public visibility.
+            renewed daily, with no queue, no token, and zero public visibility.
           </p>
-          <p className="font-light">Your Imagination. Your Creation.</p>
+          <p className="font-light">Swift. Private. Limitless.</p>
           <p className="text-xs">Cretera — Your Private World of Creation.</p>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="max-w-md mx-auto mb-8">
+        <div className="bg-card border border-border rounded-full p-1 flex">
+          <button
+            onClick={() => setActiveTab("monthly")}
+            className={`flex-1 rounded-full py-3 text-sm font-medium transition-all ${
+              activeTab === "monthly"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Monthly Plans
+          </button>
+          <button
+            onClick={() => setActiveTab("weekly")}
+            className={`flex-1 rounded-full py-3 text-sm font-medium transition-all ${
+              activeTab === "weekly"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Weekly Plans
+          </button>
         </div>
       </div>
 
@@ -73,8 +163,19 @@ const Pricing = () => {
         {plans.map((plan, index) => (
           <div
             key={index}
-            className="bg-card border border-border rounded-3xl p-6 flex flex-col"
+            className={`bg-card border rounded-3xl p-6 flex flex-col relative ${
+              plan.isPopular ? "border-primary shadow-lg shadow-primary/20" : "border-border"
+            }`}
           >
+            {/* Most Popular Badge */}
+            {plan.isPopular && (
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <div className="bg-primary text-primary-foreground text-xs font-semibold px-4 py-1 rounded-full">
+                  Most Popular
+                </div>
+              </div>
+            )}
+
             {/* Icon & Name */}
             <div className="text-center mb-4">
               <div className="text-4xl mb-2">{plan.icon}</div>
@@ -87,7 +188,7 @@ const Pricing = () => {
                 <span className="text-3xl font-bold text-foreground">{plan.price}</span>
                 <span className="text-muted-foreground">{plan.period}</span>
               </div>
-              <p className="text-sm text-muted-foreground mt-1">{plan.subtitle}</p>
+              <p className="text-sm text-muted-foreground mt-1">{plan.tagline}</p>
             </div>
 
             {/* Features */}
@@ -105,7 +206,7 @@ const Pricing = () => {
 
             {/* Button */}
             <Button
-              onClick={() => navigate("/home")}
+              onClick={() => handlePlanSelect(plan.name)}
               className={`w-full rounded-full py-6 ${plan.buttonClass}`}
             >
               {plan.buttonText}
@@ -113,6 +214,22 @@ const Pricing = () => {
           </div>
         ))}
       </div>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-center text-2xl">
+              🎉 Subscription Activated!
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-base">
+              Your <span className="font-semibold text-foreground">{selectedPlan}</span> plan is now active.
+              <br />
+              Start creating amazing content!
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+        </AlertDialogContent>
+      </AlertDialog>
 
     </div>
   );
