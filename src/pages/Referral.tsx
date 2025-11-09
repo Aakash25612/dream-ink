@@ -1,61 +1,143 @@
 import { Button } from "@/components/ui/button";
-import { Gift, ArrowLeft } from "lucide-react";
+import { Gift, ArrowLeft, Copy, Users, Trophy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Card } from "@/components/ui/card";
 
 const Referral = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [userId, setUserId] = useState<string | null>(null);
+  const [referralStats, setReferralStats] = useState({ total: 0, credits: 0 });
+  const [referralLink, setReferralLink] = useState("");
 
-  const handleInvite = () => {
-    // Simulate sharing
-    toast({
-      title: "Success",
-      description: "Referral link copied!",
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) {
+        setUserId(data.user.id);
+        setReferralLink(`${window.location.origin}/auth?ref=${data.user.id}`);
+        fetchReferralStats(data.user.id);
+      }
     });
-    navigate("/success");
+  }, []);
+
+  const fetchReferralStats = async (uid: string) => {
+    const { data } = await supabase
+      .from("referrals")
+      .select("*")
+      .eq("referrer_id", uid);
+    
+    if (data) {
+      setReferralStats({
+        total: data.length,
+        credits: data.filter(r => r.credits_awarded).length * 5
+      });
+    }
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(referralLink);
+    toast({
+      title: "Link Copied! 🎉",
+      description: "Share it with your friends to earn credits!",
+    });
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,hsl(220_60%_15%),hsl(220_40%_5%))] flex flex-col p-4">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,hsl(220_60%_15%),hsl(220_40%_5%))] p-4">
       {/* Header */}
-      <header className="flex items-center gap-4 mb-8">
+      <header className="flex items-center gap-4 mb-8 max-w-2xl mx-auto">
         <button
           onClick={() => navigate("/home")}
           className="w-10 h-10 rounded-full bg-card hover:bg-card/80 flex items-center justify-center"
         >
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
-        <h1 className="text-2xl text-foreground">Referral</h1>
+        <h1 className="text-2xl text-foreground">Cretera Connect</h1>
       </header>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center space-y-12 max-w-xl">
-        {/* Icon */}
-        <div className="w-32 h-32 flex items-center justify-center">
-          <Gift className="w-24 h-24 text-accent" strokeWidth={1.5} />
+      <div className="max-w-2xl mx-auto space-y-6">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 gap-4">
+          <Card className="bg-card border-border p-6 text-center">
+            <Users className="w-8 h-8 text-primary mx-auto mb-2" />
+            <div className="text-3xl font-bold text-foreground">{referralStats.total}</div>
+            <div className="text-sm text-muted-foreground">Friends Invited</div>
+          </Card>
+          <Card className="bg-card border-border p-6 text-center">
+            <Trophy className="w-8 h-8 text-accent mx-auto mb-2" />
+            <div className="text-3xl font-bold text-foreground">{referralStats.credits}</div>
+            <div className="text-sm text-muted-foreground">Credits Earned</div>
+          </Card>
         </div>
 
-        {/* Text Content */}
-        <div className="text-center space-y-6">
-          <h2 className="text-4xl md:text-5xl text-foreground font-light">
-            Spread the Power<br />of Creation.
+        {/* Hero Section */}
+        <Card className="bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20 p-8 text-center space-y-4">
+          <Gift className="w-16 h-16 text-primary mx-auto" />
+          <h2 className="text-2xl font-semibold text-foreground">
+            Earn 5 Credits Per Friend! 🎉
           </h2>
-          <p className="text-xl text-foreground/80">
-            Invite your friends to Cretera<br />and grow your creative circle.
+          <p className="text-foreground/80">
+            Invite your friends to join Cretera and both of you get 5 free credits when they sign up!
           </p>
-        </div>
+        </Card>
 
-        {/* CTA Button */}
-        <Button 
-          onClick={handleInvite}
-          size="lg"
-          className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-16 py-6 rounded-full"
-        >
-          Invite Friends
-        </Button>
+        {/* Referral Link */}
+        <Card className="bg-card border-border p-6 space-y-4">
+          <h3 className="text-lg font-semibold text-foreground">Your Referral Link</h3>
+          <div className="flex gap-2">
+            <div className="flex-1 bg-muted/30 rounded-lg px-4 py-3 text-sm text-foreground/80 overflow-hidden text-ellipsis">
+              {referralLink}
+            </div>
+            <Button
+              onClick={handleCopyLink}
+              size="icon"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg"
+            >
+              <Copy className="w-4 h-4" />
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Share this link with friends or on social media to start earning credits!
+          </p>
+        </Card>
+
+        {/* How it Works */}
+        <Card className="bg-card border-border p-6 space-y-4">
+          <h3 className="text-lg font-semibold text-foreground">How It Works</h3>
+          <div className="space-y-3">
+            <div className="flex gap-3">
+              <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-semibold flex-shrink-0">
+                1
+              </div>
+              <div>
+                <div className="font-medium text-foreground">Share Your Link</div>
+                <div className="text-sm text-muted-foreground">Copy and send your unique referral link</div>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-semibold flex-shrink-0">
+                2
+              </div>
+              <div>
+                <div className="font-medium text-foreground">Friend Signs Up</div>
+                <div className="text-sm text-muted-foreground">They create an account using your link</div>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-semibold flex-shrink-0">
+                3
+              </div>
+              <div>
+                <div className="font-medium text-foreground">Both Get Credits!</div>
+                <div className="text-sm text-muted-foreground">You both receive 5 free credits instantly</div>
+              </div>
+            </div>
+          </div>
+        </Card>
       </div>
-
     </div>
   );
 };
