@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Globe, Zap, Gift, Image as ImageIcon, User, Camera, Upload } from "lucide-react";
@@ -22,6 +22,33 @@ const Home = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { totalCredits, useCredit, loading: creditsLoading } = useCredits();
+  
+  useEffect(() => {
+    const checkReferralReward = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Check if there are any newly completed referrals
+      const { data: recentReferrals } = await supabase
+        .from('referrals')
+        .select('*')
+        .eq('referrer_id', user.id)
+        .eq('credits_awarded', true)
+        .gte('completed_at', new Date(Date.now() - 5000).toISOString())
+        .order('completed_at', { ascending: false })
+        .limit(1);
+
+      if (recentReferrals && recentReferrals.length > 0) {
+        toast({
+          title: "Cretera Connect Reward Unlocked",
+          description: "You've earned 2 credits from a referral!",
+        });
+      }
+    };
+
+    checkReferralReward();
+  }, [toast]);
+  
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
