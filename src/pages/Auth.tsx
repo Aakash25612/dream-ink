@@ -63,10 +63,14 @@ const Auth = () => {
 
   const handleGoogleSignIn = async () => {
     try {
+      // Check for referral code in URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const referrerId = urlParams.get('ref');
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/home`,
+          redirectTo: `${window.location.origin}/home${referrerId ? `?ref=${referrerId}` : ''}`,
         },
       });
 

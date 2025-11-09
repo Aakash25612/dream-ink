@@ -109,12 +109,16 @@ export type Database = {
           daily_limit: number | null
           free_signup_credits: number | null
           id: string
+          last_usage_date: string | null
           referral_credits: number | null
           subscription_credits: number | null
           subscription_end_date: string | null
+          subscription_period_type: string | null
           subscription_start_date: string | null
           subscription_type: string | null
+          total_subscription_credits: number | null
           updated_at: string | null
+          used_credits_today: number | null
           user_id: string
         }
         Insert: {
@@ -124,12 +128,16 @@ export type Database = {
           daily_limit?: number | null
           free_signup_credits?: number | null
           id?: string
+          last_usage_date?: string | null
           referral_credits?: number | null
           subscription_credits?: number | null
           subscription_end_date?: string | null
+          subscription_period_type?: string | null
           subscription_start_date?: string | null
           subscription_type?: string | null
+          total_subscription_credits?: number | null
           updated_at?: string | null
+          used_credits_today?: number | null
           user_id: string
         }
         Update: {
@@ -139,12 +147,16 @@ export type Database = {
           daily_limit?: number | null
           free_signup_credits?: number | null
           id?: string
+          last_usage_date?: string | null
           referral_credits?: number | null
           subscription_credits?: number | null
           subscription_end_date?: string | null
+          subscription_period_type?: string | null
           subscription_start_date?: string | null
           subscription_type?: string | null
+          total_subscription_credits?: number | null
           updated_at?: string | null
+          used_credits_today?: number | null
           user_id?: string
         }
         Relationships: []
@@ -154,7 +166,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      allocate_subscription_credits: {
+        Args: {
+          p_end_date: string
+          p_period_type: string
+          p_plan_type: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      complete_referral: {
+        Args: { p_referred_user_id: string; p_referrer_id: string }
+        Returns: undefined
+      }
+      expire_subscription_credits: { Args: never; Returns: undefined }
+      reset_daily_credits: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

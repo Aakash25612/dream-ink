@@ -32,17 +32,38 @@ const Referral = () => {
     if (data) {
       setReferralStats({
         total: data.length,
-        credits: data.filter(r => r.credits_awarded).length * 5
+        credits: data.filter(r => r.credits_awarded).length * 2
       });
     }
   };
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(referralLink);
-    toast({
-      title: "Link Copied! 🎉",
-      description: "Share it with your friends to earn credits!",
-    });
+  const handleCopyLink = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: 'Join Cretera',
+          text: 'Create amazing AI images with Cretera!',
+          url: referralLink,
+        });
+        toast({
+          title: "Shared Successfully — Rewards Await",
+          description: "You'll get 2 credits when your friend signs up!",
+        });
+      } else {
+        await navigator.clipboard.writeText(referralLink);
+        toast({
+          title: "Shared Successfully — Rewards Await",
+          description: "Link copied! You'll get 2 credits when your friend signs up!",
+        });
+      }
+    } catch (error) {
+      // Fallback to clipboard if share fails
+      await navigator.clipboard.writeText(referralLink);
+      toast({
+        title: "Shared Successfully — Rewards Await",
+        description: "Link copied! You'll get 2 credits when your friend signs up!",
+      });
+    }
   };
 
   return (
@@ -77,10 +98,10 @@ const Referral = () => {
         <Card className="bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20 p-8 text-center space-y-4">
           <Gift className="w-16 h-16 text-primary mx-auto" />
           <h2 className="text-2xl font-semibold text-foreground">
-            Earn 5 Credits Per Friend! 🎉
+            Earn 2 Credits Per Friend! 🎉
           </h2>
           <p className="text-foreground/80">
-            Invite your friends to join Cretera and both of you get 5 free credits when they sign up!
+            Invite your friends to join Cretera and get 2 free credits when they sign up!
           </p>
         </Card>
 
@@ -93,10 +114,9 @@ const Referral = () => {
             </div>
             <Button
               onClick={handleCopyLink}
-              size="icon"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg px-6"
             >
-              <Copy className="w-4 h-4" />
+              Invite
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
@@ -131,8 +151,8 @@ const Referral = () => {
                 3
               </div>
               <div>
-                <div className="font-medium text-foreground">Both Get Credits!</div>
-                <div className="text-sm text-muted-foreground">You both receive 5 free credits instantly</div>
+                <div className="font-medium text-foreground">You Get Credits!</div>
+                <div className="text-sm text-muted-foreground">You receive 2 free credits when they sign up</div>
               </div>
             </div>
           </div>
