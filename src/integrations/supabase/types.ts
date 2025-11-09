@@ -38,6 +38,117 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string | null
+          display_name: string | null
+          email: string | null
+          id: string
+          is_first_time: boolean | null
+          signup_date: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_name?: string | null
+          email?: string | null
+          id: string
+          is_first_time?: boolean | null
+          signup_date?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          is_first_time?: boolean | null
+          signup_date?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          credits_awarded: boolean | null
+          id: string
+          referred_email: string | null
+          referred_user_id: string | null
+          referrer_id: string
+          status: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          credits_awarded?: boolean | null
+          id?: string
+          referred_email?: string | null
+          referred_user_id?: string | null
+          referrer_id: string
+          status?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          credits_awarded?: boolean | null
+          id?: string
+          referred_email?: string | null
+          referred_user_id?: string | null
+          referrer_id?: string
+          status?: string | null
+        }
+        Relationships: []
+      }
+      user_credits: {
+        Row: {
+          created_at: string | null
+          daily_free_credits: number | null
+          daily_free_credits_date: string | null
+          daily_limit: number | null
+          free_signup_credits: number | null
+          id: string
+          referral_credits: number | null
+          subscription_credits: number | null
+          subscription_end_date: string | null
+          subscription_start_date: string | null
+          subscription_type: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          daily_free_credits?: number | null
+          daily_free_credits_date?: string | null
+          daily_limit?: number | null
+          free_signup_credits?: number | null
+          id?: string
+          referral_credits?: number | null
+          subscription_credits?: number | null
+          subscription_end_date?: string | null
+          subscription_start_date?: string | null
+          subscription_type?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          daily_free_credits?: number | null
+          daily_free_credits_date?: string | null
+          daily_limit?: number | null
+          free_signup_credits?: number | null
+          id?: string
+          referral_credits?: number | null
+          subscription_credits?: number | null
+          subscription_end_date?: string | null
+          subscription_start_date?: string | null
+          subscription_type?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
