@@ -11,20 +11,50 @@ const Auth = () => {
 
   useEffect(() => {
     // Listen for auth changes first
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session && event === 'SIGNED_IN') {
+        // Check if this is a first-time user
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_first_time')
+          .eq('id', session.user.id)
+          .single();
+
         toast({
           title: "Success",
           description: "Signed in successfully!",
         });
-        navigate("/home", { replace: true });
+
+        // Navigate to intro screen for first-time users, splash for returning users
+        if (profile?.is_first_time) {
+          // Update is_first_time to false
+          await supabase
+            .from('profiles')
+            .update({ is_first_time: false })
+            .eq('id', session.user.id);
+          
+          navigate("/intro", { replace: true });
+        } else {
+          navigate("/splash", { replace: true });
+        }
       }
     });
 
     // Then check if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
-        navigate("/home", { replace: true });
+        // For already logged in users, show splash screen
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_first_time')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile?.is_first_time) {
+          navigate("/intro", { replace: true });
+        } else {
+          navigate("/splash", { replace: true });
+        }
       }
     });
 
