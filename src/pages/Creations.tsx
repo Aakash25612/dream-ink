@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Download, Trash2 } from "lucide-react";
+import { ArrowLeft, Download, Trash2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -44,11 +44,41 @@ const Creations = () => {
     }
   };
 
-  const handleDownload = (imageUrl: string, prompt: string) => {
-    const link = document.createElement('a');
-    link.href = imageUrl;
-    link.download = `cretera-${prompt.slice(0, 30).replace(/\s+/g, '-')}.png`;
-    link.click();
+  const handleView = (creation: Creation) => {
+    navigate("/created-image", {
+      state: {
+        imageUrl: creation.image_url,
+        prompt: creation.prompt,
+        creationId: creation.id
+      }
+    });
+  };
+
+  const handleDownload = async (imageUrl: string, prompt: string) => {
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `cretera-${prompt.slice(0, 30).replace(/\s+/g, '-')}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "🖨️ Creation downloaded to your device.",
+        description: "Image saved successfully",
+      });
+    } catch (error) {
+      console.error('Download error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to download image",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -110,13 +140,31 @@ const Creations = () => {
                   />
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     <button
-                      onClick={() => handleDownload(creation.image_url, creation.prompt)}
+                      onClick={() => handleView(creation)}
                       className="w-10 h-10 rounded-full bg-primary hover:bg-primary/90 flex items-center justify-center"
+                      style={{
+                        boxShadow: "0 0 15px hsl(200_100%_70% / 0.4)"
+                      }}
+                    >
+                      <Eye className="w-5 h-5 text-primary-foreground" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownload(creation.image_url, creation.prompt);
+                      }}
+                      className="w-10 h-10 rounded-full bg-primary hover:bg-primary/90 flex items-center justify-center"
+                      style={{
+                        boxShadow: "0 0 15px hsl(200_100%_70% / 0.4)"
+                      }}
                     >
                       <Download className="w-5 h-5 text-primary-foreground" />
                     </button>
                     <button
-                      onClick={() => handleDelete(creation.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(creation.id);
+                      }}
                       className="w-10 h-10 rounded-full bg-destructive hover:bg-destructive/90 flex items-center justify-center"
                     >
                       <Trash2 className="w-5 h-5 text-destructive-foreground" />

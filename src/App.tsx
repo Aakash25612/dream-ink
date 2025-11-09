@@ -8,6 +8,8 @@ import Auth from "./pages/Auth";
 import Intro from "./pages/Intro";
 import Splash from "./pages/Splash";
 import Home from "./pages/Home";
+import CreatedImage from "./pages/CreatedImage";
+import EditImage from "./pages/EditImage";
 import Referral from "./pages/Referral";
 import Success from "./pages/Success";
 import Upgrade from "./pages/Upgrade";
@@ -33,6 +35,8 @@ const App = () => (
           <Route path="/intro" element={<Intro />} />
           <Route path="/splash" element={<Splash />} />
           <Route path="/home" element={<Home />} />
+          <Route path="/created-image" element={<CreatedImage />} />
+          <Route path="/edit-image" element={<EditImage />} />
           <Route path="/referral" element={<Referral />} />
           <Route path="/success" element={<Success />} />
           <Route path="/upgrade" element={<Upgrade />} />

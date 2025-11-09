@@ -93,12 +93,16 @@ const Home = () => {
         throw new Error(data.error);
       }
 
-      // Save to database
-      const { error: dbError } = await supabase.from('creations').insert({
-        prompt: prompt.trim(),
-        image_url: data.image,
-        user_id: user?.id || null
-      });
+      // Save to database (auto-save)
+      const { data: savedCreation, error: dbError } = await supabase
+        .from('creations')
+        .insert({
+          prompt: prompt.trim(),
+          image_url: data.image,
+          user_id: user?.id || null
+        })
+        .select()
+        .single();
       
       if (dbError) {
         console.error('Failed to save to database:', dbError);
@@ -109,10 +113,17 @@ const Home = () => {
         description: "Your creation is ready!"
       });
 
-      // Reset and navigate
+      // Reset and navigate to created image page
+      const creationId = savedCreation?.id;
       setPrompt("");
       setUploadedImage(null);
-      navigate("/creations");
+      navigate("/created-image", { 
+        state: { 
+          imageUrl: data.image, 
+          prompt: prompt.trim(),
+          creationId 
+        } 
+      });
     } catch (error) {
       toast({
         title: "Error",
