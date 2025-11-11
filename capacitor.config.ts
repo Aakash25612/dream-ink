@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'dream-ink',
   webDir: 'dist',
   server: {
-    url: 'https://3eff40be-906e-4a35-b679-ab63527eda85.lovableproject.com?forceHideBadge=true',
+    url: 'https://workdemoo.netlify.app',
     cleartext: true
   },
   plugins: {
