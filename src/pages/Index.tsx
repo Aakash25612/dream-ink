@@ -7,33 +7,22 @@ const Index = () => {
   const [showText, setShowText] = useState(false);
 
   useEffect(() => {
-    // Show text after 1 second
-    const textTimer = setTimeout(() => {
-      setShowText(true);
-    }, 1000);
-
-    // Check auth and navigate after splash duration
     const checkAuthAndNavigate = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session) {
-        // User is logged in, go to home
-        navigate("/home", { replace: true });
+        // User is logged in, show splash then go to home
+        setShowText(true);
+        setTimeout(() => {
+          navigate("/home", { replace: true });
+        }, 2500);
       } else {
-        // User is not logged in, go to landing page
+        // User is not logged in, go directly to landing (no splash)
         navigate("/landing", { replace: true });
       }
     };
 
-    // Start navigation check after 2.5 seconds
-    const navigationTimer = setTimeout(() => {
-      checkAuthAndNavigate();
-    }, 2500);
-
-    return () => {
-      clearTimeout(textTimer);
-      clearTimeout(navigationTimer);
-    };
+    checkAuthAndNavigate();
   }, [navigate]);
 
   return (
