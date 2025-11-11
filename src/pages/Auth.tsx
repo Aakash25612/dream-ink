@@ -77,7 +77,7 @@ const Auth = () => {
       } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/home${referrerId ? `?ref=${referrerId}` : ''}`
+          redirectTo: `${window.location.origin}/auth${referrerId ? `?ref=${referrerId}` : ''}`
         }
       });
       if (error) {
