@@ -316,15 +316,20 @@ const Home = () => {
       </main>
 
       {/* Bottom Navigation Footer */}
-      <footer className="border-t border-border bg-card/50 backdrop-blur-sm">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 max-w-4xl mx-auto">
-          {features.map((feature, index) => <button key={index} onClick={feature.onClick} className="bg-card border border-border rounded-2xl p-4 flex flex-col items-center text-center space-y-2 hover:bg-card/80 transition-colors">
-              <feature.icon className={`w-8 h-8 ${feature.color}`} />
-              <div>
-                <h3 className="text-foreground font-medium text-sm">{feature.title}</h3>
-                <p className="text-muted-foreground text-xs mt-1">{feature.description}</p>
-              </div>
-            </button>)}
+      <footer className="border-t border-border bg-card/95 backdrop-blur-sm">
+        <div className="flex justify-around items-center max-w-4xl mx-auto py-2 px-4">
+          {features.map((feature, index) => (
+            <button 
+              key={index} 
+              onClick={feature.onClick} 
+              className="flex flex-col items-center justify-center space-y-1 py-2 px-3 hover:bg-muted/50 rounded-lg transition-colors min-w-[70px]"
+            >
+              <feature.icon className={`w-6 h-6 ${feature.color}`} />
+              <span className="text-[10px] text-foreground/90 font-medium text-center leading-tight">
+                {feature.title}
+              </span>
+            </button>
+          ))}
         </div>
       </footer>
     </div>;
