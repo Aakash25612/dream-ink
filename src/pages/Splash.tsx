@@ -24,9 +24,9 @@ const Splash = () => {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,hsl(220_60%_15%),hsl(220_40%_5%))] flex flex-col items-center justify-center p-4">
-      <div className="text-center space-y-8 animate-fade-in">
+      <div className="text-center space-y-6">
         {/* Cretera Icon - 8-point glowing blue design */}
-        <div className="relative w-32 h-32 mx-auto">
+        <div className="relative w-32 h-32 mx-auto animate-fade-in">
           <svg 
             viewBox="0 0 100 100" 
             className="w-full h-full"
@@ -51,11 +51,11 @@ const Splash = () => {
 
         {/* CRETERA text - fades in after 1 second */}
         <h1 
-          className={`text-6xl md:text-7xl font-bold bg-gradient-to-r from-[hsl(200_100%_70%)] to-[hsl(217_91%_60%)] bg-clip-text text-transparent tracking-wide transition-opacity duration-700 ${
+          className={`text-5xl md:text-6xl font-bold bg-gradient-to-r from-[hsl(200_100%_70%)] to-[hsl(217_91%_60%)] bg-clip-text text-transparent tracking-wide transition-opacity duration-700 ${
             showText ? "opacity-100" : "opacity-0"
           }`}
           style={{
-            filter: showText ? "drop-shadow(0 0 20px hsl(200_100%_70% / 0.4))" : "none"
+            filter: showText ? "drop-shadow(0 0 20px hsl(200_100%_70% / 0.5)) drop-shadow(0 0 40px hsl(217_91%_60% / 0.3))" : "none"
           }}
         >
           CRETERA
