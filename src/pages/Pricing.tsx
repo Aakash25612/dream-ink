@@ -30,7 +30,7 @@ const Pricing = () => {
       features: ["210 images / month", "7 images / day"],
       savings: "Save up to ₹1,000 / month",
       buttonText: "Ignite Creation",
-      buttonClass: "bg-secondary hover:bg-secondary/80 text-secondary-foreground",
+      buttonClass: "bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.5)] hover:shadow-[0_0_30px_rgba(59,130,246,0.7)]",
       isPopular: false
     },
     {
@@ -42,7 +42,7 @@ const Pricing = () => {
       features: ["420 images / month", "14 images / day"],
       savings: "Save up to ₹2,500 / month",
       buttonText: "Boost Creation",
-      buttonClass: "bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black",
+      buttonClass: "bg-yellow-500 hover:bg-yellow-600 text-black border-2 border-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.5)] hover:shadow-[0_0_30px_rgba(234,179,8,0.7)]",
       isPopular: true
     },
     {
@@ -54,7 +54,7 @@ const Pricing = () => {
       features: ["1020 images / month", "34 images / day"],
       savings: "Save up to ₹15,000 / month",
       buttonText: "Elevate Creation",
-      buttonClass: "bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-foreground",
+      buttonClass: "bg-purple-600 hover:bg-purple-700 text-white border-2 border-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.5)] hover:shadow-[0_0_30px_rgba(168,85,247,0.7)]",
       isPopular: false
     },
   ];
@@ -69,7 +69,7 @@ const Pricing = () => {
       features: ["63 images / week", "9 images / day"],
       savings: "Save up to ₹250 / week",
       buttonText: "Ignite Creation",
-      buttonClass: "bg-secondary hover:bg-secondary/80 text-secondary-foreground",
+      buttonClass: "bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.5)] hover:shadow-[0_0_30px_rgba(59,130,246,0.7)]",
       isPopular: false
     },
     {
@@ -81,7 +81,7 @@ const Pricing = () => {
       features: ["133 images / week", "19 images / day"],
       savings: "Save up to ₹625 / week",
       buttonText: "Boost Creation",
-      buttonClass: "bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black",
+      buttonClass: "bg-yellow-500 hover:bg-yellow-600 text-black border-2 border-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.5)] hover:shadow-[0_0_30px_rgba(234,179,8,0.7)]",
       isPopular: true
     },
     {
@@ -93,7 +93,7 @@ const Pricing = () => {
       features: ["329 images / week", "47 images / day"],
       savings: "Save up to ₹3,750 / week",
       buttonText: "Elevate Creation",
-      buttonClass: "bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-foreground",
+      buttonClass: "bg-purple-600 hover:bg-purple-700 text-white border-2 border-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.5)] hover:shadow-[0_0_30px_rgba(168,85,247,0.7)]",
       isPopular: false
     },
   ];
