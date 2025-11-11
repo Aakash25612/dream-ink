@@ -1,4 +1,4 @@
-import { CapacitorPurchases } from '@capgo/capacitor-purchases';
+import { NativePurchases } from '@capgo/native-purchases';
 import { Capacitor } from '@capacitor/core';
 
 export const PRODUCT_IDS = {
@@ -26,8 +26,11 @@ export class BillingService {
     }
 
     try {
-      await CapacitorPurchases.setup({
-        apiKey: '', // Will be set in Play Console
+      // @ts-ignore - Using native-purchases API
+      await (NativePurchases as any).configure({
+        apiKey: '', // Will be set from Play Console / RevenueCat
+        appUserID: undefined, // Will use anonymous ID
+        observerMode: false,
       });
       this.initialized = true;
       console.log('Billing initialized successfully');
@@ -48,8 +51,11 @@ export class BillingService {
         ...Object.values(PRODUCT_IDS.monthly),
       ];
 
-      const { offerings } = await CapacitorPurchases.getOfferings();
-      return offerings;
+      // @ts-ignore - Using native-purchases API
+      const { products } = await (NativePurchases as any).getProducts({
+        productIdentifiers: productIds,
+      });
+      return products;
     } catch (error) {
       console.error('Failed to get products:', error);
       return null;
@@ -67,12 +73,12 @@ export class BillingService {
     try {
       const productId = PRODUCT_IDS[periodType][planType];
       
-      const result = await CapacitorPurchases.purchasePackage({
-        identifier: productId,
-        offeringIdentifier: productId,
+      // @ts-ignore - Using native-purchases API
+      const { customerInfo } = await (NativePurchases as any).purchaseProduct({
+        productIdentifier: productId,
       });
 
-      if (result.customerInfo) {
+      if (customerInfo) {
         return {
           success: true,
           purchaseToken: productId,
@@ -95,10 +101,11 @@ export class BillingService {
     }
 
     try {
-      const result = await CapacitorPurchases.restorePurchases();
+      // @ts-ignore - Using native-purchases API
+      const { customerInfo } = await (NativePurchases as any).restorePurchases();
       return {
         success: true,
-        purchases: result.customerInfo,
+        purchases: customerInfo,
       };
     } catch (error: any) {
       console.error('Restore purchases error:', error);
