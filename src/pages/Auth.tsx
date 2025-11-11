@@ -77,7 +77,7 @@ const Auth = () => {
       } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth${referrerId ? `?ref=${referrerId}` : ''}`
+          redirectTo: `https://workdemoo.netlify.app/auth${referrerId ? `?ref=${referrerId}` : ''}`
         }
       });
       if (error) {
