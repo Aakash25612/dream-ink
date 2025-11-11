@@ -190,16 +190,13 @@ const Home = () => {
   return <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,hsl(220_60%_15%),hsl(220_40%_5%))] flex flex-col">
       {/* Header */}
       <header className="p-4 flex items-center justify-between">
-        <button onClick={() => navigate("/profile")} className="w-10 h-10 rounded-full border-2 border-foreground flex items-center justify-center">
-          <User className="w-5 h-5" />
-        </button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="w-10 h-10 rounded-full border-2 border-foreground flex items-center justify-center">
               <MoreVertical className="w-5 h-5" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="start" className="bg-card border-border z-50">
             <DropdownMenuItem onClick={() => navigate("/settings")}>
               <Settings className="w-4 h-4 mr-2" />
               Settings
@@ -221,6 +218,9 @@ const Home = () => {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <button onClick={() => navigate("/profile")} className="w-10 h-10 rounded-full border-2 border-foreground flex items-center justify-center">
+          <User className="w-5 h-5" />
+        </button>
       </header>
 
       {/* Main Content */}
@@ -313,19 +313,20 @@ const Home = () => {
             <LoadingAnimation />
           </div>
         )}
+      </main>
 
-        {/* Feature Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-4xl mt-8">
-          {features.map((feature, index) => <button key={index} onClick={feature.onClick} className="bg-card border border-border rounded-2xl p-6 flex flex-col items-center text-center space-y-3 hover:bg-card/80 transition-colors">
-              <feature.icon className={`w-12 h-12 ${feature.color}`} />
+      {/* Bottom Navigation Footer */}
+      <footer className="border-t border-border bg-card/50 backdrop-blur-sm">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 max-w-4xl mx-auto">
+          {features.map((feature, index) => <button key={index} onClick={feature.onClick} className="bg-card border border-border rounded-2xl p-4 flex flex-col items-center text-center space-y-2 hover:bg-card/80 transition-colors">
+              <feature.icon className={`w-8 h-8 ${feature.color}`} />
               <div>
-                <h3 className="text-foreground font-medium">{feature.title}</h3>
-                <p className="text-muted-foreground text-sm mt-1">{feature.description}</p>
+                <h3 className="text-foreground font-medium text-sm">{feature.title}</h3>
+                <p className="text-muted-foreground text-xs mt-1">{feature.description}</p>
               </div>
             </button>)}
         </div>
-      </main>
-
+      </footer>
     </div>;
 };
 export default Home;
