@@ -1,54 +1,125 @@
-import { Button } from "@/components/ui/button";
-import { Sparkles, Wand2, Zap } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const navigate = useNavigate();
+  const [showText, setShowText] = useState(false);
+
+  useEffect(() => {
+    // Show text after 1 second
+    const textTimer = setTimeout(() => {
+      setShowText(true);
+    }, 1000);
+
+    // Check auth and navigate after splash duration
+    const checkAuthAndNavigate = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        // User is logged in, go to home
+        navigate("/home", { replace: true });
+      } else {
+        // User is not logged in, go to auth
+        navigate("/auth", { replace: true });
+      }
+    };
+
+    // Start navigation check after 2.5 seconds
+    const navigationTimer = setTimeout(() => {
+      checkAuthAndNavigate();
+    }, 2500);
+
+    return () => {
+      clearTimeout(textTimer);
+      clearTimeout(navigationTimer);
+    };
+  }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/30 to-background flex items-center justify-center p-4">
-      <div className="max-w-2xl text-center space-y-8">
-        {/* Logo */}
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-primary to-accent shadow-[var(--shadow-glow)] mb-4">
-          <Sparkles className="w-10 h-10 text-primary-foreground" />
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,hsl(220_60%_15%),hsl(220_40%_5%))] flex flex-col items-center justify-center p-4 overflow-hidden">
+      <div className="text-center space-y-8">
+        {/* Cretera Icon - Enhanced 8-point glowing blue star with rotation */}
+        <div className="relative w-40 h-40 mx-auto animate-fade-in">
+          <svg 
+            viewBox="0 0 100 100" 
+            className="w-full h-full animate-spin-slow"
+            style={{
+              filter: "drop-shadow(0 0 30px hsl(200_100%_70% / 0.8)) drop-shadow(0 0 60px hsl(217_91%_60% / 0.6))"
+            }}
+          >
+            {/* Enhanced 8-point star shape */}
+            <path
+              d="M50 5 L57 38 L80 20 L68 50 L95 50 L68 50 L80 80 L57 62 L50 95 L43 62 L20 80 L32 50 L5 50 L32 50 L20 20 L43 38 Z"
+              fill="url(#blueGradient)"
+              stroke="url(#blueGradient)"
+              strokeWidth="1"
+              className="opacity-90"
+            />
+            {/* Inner glow circle */}
+            <circle
+              cx="50"
+              cy="50"
+              r="15"
+              fill="url(#centerGlow)"
+              className="animate-pulse"
+            />
+            <defs>
+              <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="hsl(200_100%_70%)" />
+                <stop offset="50%" stopColor="hsl(217_91%_60%)" />
+                <stop offset="100%" stopColor="hsl(200_100%_70%)" />
+              </linearGradient>
+              <radialGradient id="centerGlow">
+                <stop offset="0%" stopColor="hsl(200_100%_80%)" stopOpacity="0.8" />
+                <stop offset="100%" stopColor="hsl(217_91%_60%)" stopOpacity="0.3" />
+              </radialGradient>
+            </defs>
+          </svg>
+          
+          {/* Outer glow ring */}
+          <div 
+            className="absolute inset-0 rounded-full animate-ping"
+            style={{
+              background: "radial-gradient(circle, hsl(217_91%_60% / 0.3) 0%, transparent 70%)",
+              animationDuration: "2s"
+            }}
+          />
         </div>
 
-        {/* Heading */}
-        <div className="space-y-4">
-          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-in fade-in slide-in-from-bottom-4 duration-1000">
-            AI Image Generator
-          </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-lg mx-auto animate-in fade-in slide-in-from-bottom-5 duration-1000 delay-150">
-            Transform your ideas into stunning visuals with the power of artificial intelligence
-          </p>
-        </div>
-
-        {/* Features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8 animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-300">
-          {[
-            { icon: Wand2, text: "Magic Prompts" },
-            { icon: Zap, text: "Instant Results" },
-            { icon: Sparkles, text: "AI Powered" },
-          ].map((feature, index) => (
-            <div 
-              key={index}
-              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-card/50 border border-border/50 backdrop-blur-sm"
-            >
-              <feature.icon className="w-6 h-6 text-primary" />
-              <span className="text-sm font-medium text-foreground">{feature.text}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* CTA Button */}
-        <Button 
-          onClick={() => navigate("/auth")}
-          size="lg"
-          className="bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity shadow-lg text-lg px-8 py-6 animate-in fade-in slide-in-from-bottom-7 duration-1000 delay-500"
+        {/* CRETERA text - Enhanced with better glow */}
+        <h1 
+          className={`text-6xl md:text-7xl font-bold bg-gradient-to-r from-[hsl(200_100%_70%)] via-[hsl(217_91%_60%)] to-[hsl(200_100%_70%)] bg-clip-text text-transparent tracking-wider transition-all duration-700 ${
+            showText ? "opacity-100 scale-100" : "opacity-0 scale-95"
+          }`}
+          style={{
+            filter: showText 
+              ? "drop-shadow(0 0 30px hsl(200_100%_70% / 0.6)) drop-shadow(0 0 60px hsl(217_91%_60% / 0.4))" 
+              : "none"
+          }}
         >
-          Get Started
-          <Sparkles className="w-5 h-5 ml-2" />
-        </Button>
+          CRETERA
+        </h1>
+
+        {/* Loading indicator */}
+        <div 
+          className={`flex justify-center gap-2 transition-opacity duration-500 ${
+            showText ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <div 
+            className="w-2 h-2 rounded-full bg-primary animate-bounce"
+            style={{ animationDelay: "0ms" }}
+          />
+          <div 
+            className="w-2 h-2 rounded-full bg-primary animate-bounce"
+            style={{ animationDelay: "150ms" }}
+          />
+          <div 
+            className="w-2 h-2 rounded-full bg-primary animate-bounce"
+            style={{ animationDelay: "300ms" }}
+          />
+        </div>
       </div>
     </div>
   );
