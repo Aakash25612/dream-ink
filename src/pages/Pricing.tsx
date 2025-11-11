@@ -29,7 +29,7 @@ const Pricing = () => {
       tagline: "The cost of a movie ticket 🎫",
       features: ["210 images / month", "7 images / day"],
       savings: "Save up to ₹1,000 / month",
-      buttonText: "Start Creating",
+      buttonText: "Ignite Creation",
       buttonClass: "bg-secondary hover:bg-secondary/80 text-secondary-foreground",
       isPopular: false
     },
@@ -41,7 +41,7 @@ const Pricing = () => {
       tagline: "The cost of a OTT subscription 📺",
       features: ["420 images / month", "14 images / day"],
       savings: "Save up to ₹2,500 / month",
-      buttonText: "Go Pro ⚡",
+      buttonText: "Boost Creation ⚡",
       buttonClass: "bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black",
       isPopular: true
     },
@@ -53,7 +53,7 @@ const Pricing = () => {
       tagline: "The cost of one dinner out 🍽️",
       features: ["1020 images / month", "34 images / day"],
       savings: "Save up to ₹15,000 / month",
-      buttonText: "Unlock Creativity ✨",
+      buttonText: "Elevate Creation ✨",
       buttonClass: "bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-foreground",
       isPopular: false
     },
@@ -67,8 +67,8 @@ const Pricing = () => {
       period: "/wk",
       tagline: "The cost of a cup of coffee ☕",
       features: ["63 images / week", "9 images / day"],
-      savings: "Perfect for casual creators",
-      buttonText: "Start Creating",
+      savings: "Save up to ₹250 / week",
+      buttonText: "Ignite Creation",
       buttonClass: "bg-secondary hover:bg-secondary/80 text-secondary-foreground",
       isPopular: false
     },
@@ -79,8 +79,8 @@ const Pricing = () => {
       period: "/wk",
       tagline: "The cost of a burger 🍔",
       features: ["133 images / week", "19 images / day"],
-      savings: "Most flexible option",
-      buttonText: "Go Pro ⚡",
+      savings: "Save up to ₹625 / week",
+      buttonText: "Boost Creation ⚡",
       buttonClass: "bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black",
       isPopular: true
     },
@@ -91,8 +91,8 @@ const Pricing = () => {
       period: "/wk",
       tagline: "The cost of a pizza 🍕",
       features: ["329 images / week", "47 images / day"],
-      savings: "For serious creators",
-      buttonText: "Unlock Creativity ✨",
+      savings: "Save up to ₹3,750 / week",
+      buttonText: "Elevate Creation ✨",
       buttonClass: "bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-foreground",
       isPopular: false
     },
