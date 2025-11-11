@@ -3,106 +3,95 @@ import { Check, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useBilling } from "@/hooks/useBilling";
 import { PlanType, PeriodType } from "@/services/billingService";
-
 const Pricing = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"monthly" | "weekly">("monthly");
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState("");
-  const { isNative, purchaseSubscription, loading } = useBilling();
-
-  const monthlyPlans = [
-    {
-      name: "Plus",
-      icon: "👤",
-      price: "₹299",
-      period: "/mo",
-      tagline: "The cost of a movie ticket",
-      features: ["210 images / month", "7 images / day"],
-      savings: "Save up to ₹1,000 / month",
-      buttonText: "Ignite Creation",
-      buttonClass: "bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.5)] hover:shadow-[0_0_30px_rgba(59,130,246,0.7)]",
-      isPopular: false
-    },
-    {
-      name: "Pro",
-      icon: "✏️",
-      price: "₹499",
-      period: "/mo",
-      tagline: "The cost of a OTT subscription",
-      features: ["420 images / month", "14 images / day"],
-      savings: "Save up to ₹2,500 / month",
-      buttonText: "Boost Creation",
-      buttonClass: "bg-yellow-500 hover:bg-yellow-600 text-black border-2 border-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.5)] hover:shadow-[0_0_30px_rgba(234,179,8,0.7)]",
-      isPopular: true
-    },
-    {
-      name: "Premium",
-      icon: "💎",
-      price: "₹999",
-      period: "/mo",
-      tagline: "The cost of one dinner out",
-      features: ["1020 images / month", "34 images / day"],
-      savings: "Save up to ₹15,000 / month",
-      buttonText: "Elevate Creation",
-      buttonClass: "bg-purple-600 hover:bg-purple-700 text-white border-2 border-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.5)] hover:shadow-[0_0_30px_rgba(168,85,247,0.7)]",
-      isPopular: false
-    },
-  ];
-
-  const weeklyPlans = [
-    {
-      name: "Plus",
-      icon: "👤",
-      price: "₹99",
-      period: "/wk",
-      tagline: "The cost of a cup of coffee",
-      features: ["63 images / week", "9 images / day"],
-      savings: "Save up to ₹250 / week",
-      buttonText: "Ignite Creation",
-      buttonClass: "bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.5)] hover:shadow-[0_0_30px_rgba(59,130,246,0.7)]",
-      isPopular: false
-    },
-    {
-      name: "Pro",
-      icon: "✏️",
-      price: "₹199",
-      period: "/wk",
-      tagline: "The cost of a burger",
-      features: ["133 images / week", "19 images / day"],
-      savings: "Save up to ₹625 / week",
-      buttonText: "Boost Creation",
-      buttonClass: "bg-yellow-500 hover:bg-yellow-600 text-black border-2 border-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.5)] hover:shadow-[0_0_30px_rgba(234,179,8,0.7)]",
-      isPopular: true
-    },
-    {
-      name: "Premium",
-      icon: "💎",
-      price: "₹399",
-      period: "/wk",
-      tagline: "The cost of a pizza",
-      features: ["329 images / week", "47 images / day"],
-      savings: "Save up to ₹3,750 / week",
-      buttonText: "Elevate Creation",
-      buttonClass: "bg-purple-600 hover:bg-purple-700 text-white border-2 border-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.5)] hover:shadow-[0_0_30px_rgba(168,85,247,0.7)]",
-      isPopular: false
-    },
-  ];
-
+  const {
+    isNative,
+    purchaseSubscription,
+    loading
+  } = useBilling();
+  const monthlyPlans = [{
+    name: "Plus",
+    icon: "👤",
+    price: "₹299",
+    period: "/mo",
+    tagline: "The cost of a movie ticket",
+    features: ["210 images / month", "7 images / day"],
+    savings: "Save up to ₹1,000 / month",
+    buttonText: "Ignite Creation",
+    buttonClass: "bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.5)] hover:shadow-[0_0_30px_rgba(59,130,246,0.7)]",
+    isPopular: false
+  }, {
+    name: "Pro",
+    icon: "✏️",
+    price: "₹499",
+    period: "/mo",
+    tagline: "The cost of a OTT subscription",
+    features: ["420 images / month", "14 images / day"],
+    savings: "Save up to ₹2,500 / month",
+    buttonText: "Boost Creation",
+    buttonClass: "bg-yellow-500 hover:bg-yellow-600 text-black border-2 border-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.5)] hover:shadow-[0_0_30px_rgba(234,179,8,0.7)]",
+    isPopular: true
+  }, {
+    name: "Premium",
+    icon: "💎",
+    price: "₹999",
+    period: "/mo",
+    tagline: "The cost of one dinner out",
+    features: ["1020 images / month", "34 images / day"],
+    savings: "Save up to ₹15,000 / month",
+    buttonText: "Elevate Creation",
+    buttonClass: "bg-purple-600 hover:bg-purple-700 text-white border-2 border-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.5)] hover:shadow-[0_0_30px_rgba(168,85,247,0.7)]",
+    isPopular: false
+  }];
+  const weeklyPlans = [{
+    name: "Plus",
+    icon: "👤",
+    price: "₹99",
+    period: "/wk",
+    tagline: "The cost of a cup of coffee",
+    features: ["63 images / week", "9 images / day"],
+    savings: "Save up to ₹250 / week",
+    buttonText: "Ignite Creation",
+    buttonClass: "bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.5)] hover:shadow-[0_0_30px_rgba(59,130,246,0.7)]",
+    isPopular: false
+  }, {
+    name: "Pro",
+    icon: "✏️",
+    price: "₹199",
+    period: "/wk",
+    tagline: "The cost of a burger",
+    features: ["133 images / week", "19 images / day"],
+    savings: "Save up to ₹625 / week",
+    buttonText: "Boost Creation",
+    buttonClass: "bg-yellow-500 hover:bg-yellow-600 text-black border-2 border-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.5)] hover:shadow-[0_0_30px_rgba(234,179,8,0.7)]",
+    isPopular: true
+  }, {
+    name: "Premium",
+    icon: "💎",
+    price: "₹399",
+    period: "/wk",
+    tagline: "The cost of a pizza",
+    features: ["329 images / week", "47 images / day"],
+    savings: "Save up to ₹3,750 / week",
+    buttonText: "Elevate Creation",
+    buttonClass: "bg-purple-600 hover:bg-purple-700 text-white border-2 border-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.5)] hover:shadow-[0_0_30px_rgba(168,85,247,0.7)]",
+    isPopular: false
+  }];
   const plans = activeTab === "monthly" ? monthlyPlans : weeklyPlans;
-
   const allocateCredits = async (planName: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       // Calculate end date based on period type
@@ -124,25 +113,19 @@ const Pricing = () => {
       console.error('Error allocating credits:', error);
     }
   };
-
   const handlePlanSelect = async (planName: string) => {
     setSelectedPlan(planName);
-    
     if (isNative) {
       // Native Android - use Google Play Billing
-      const success = await purchaseSubscription(
-        planName.toLowerCase() as PlanType,
-        activeTab as PeriodType,
-        async (purchaseToken) => {
-          // Purchase successful, allocate credits
-          await allocateCredits(planName);
-          setShowConfirmation(true);
-          setTimeout(() => {
-            setShowConfirmation(false);
-            navigate("/home");
-          }, 3000);
-        }
-      );
+      const success = await purchaseSubscription(planName.toLowerCase() as PlanType, activeTab as PeriodType, async purchaseToken => {
+        // Purchase successful, allocate credits
+        await allocateCredits(planName);
+        setShowConfirmation(true);
+        setTimeout(() => {
+          setShowConfirmation(false);
+          navigate("/home");
+        }, 3000);
+      });
     } else {
       // Web flow - allocate credits directly
       await allocateCredits(planName);
@@ -153,15 +136,10 @@ const Pricing = () => {
       }, 3000);
     }
   };
-
-  return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,hsl(220_60%_15%),hsl(220_40%_5%))] p-4 md:p-8">
+  return <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,hsl(220_60%_15%),hsl(220_40%_5%))] p-4 md:p-8">
       {/* Header */}
       <header className="flex items-center gap-4 mb-8 max-w-6xl mx-auto">
-        <button
-          onClick={() => navigate("/home")}
-          className="w-10 h-10 rounded-full bg-card hover:bg-card/80 flex items-center justify-center"
-        >
+        <button onClick={() => navigate("/home")} className="w-10 h-10 rounded-full bg-card hover:bg-card/80 flex items-center justify-center">
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
       </header>
@@ -184,24 +162,10 @@ const Pricing = () => {
       {/* Tabs */}
       <div className="max-w-md mx-auto mb-6">
         <div className="bg-card border border-border rounded-full p-1 flex">
-          <button
-            onClick={() => setActiveTab("monthly")}
-            className={`flex-1 rounded-full py-3 text-sm font-medium transition-all ${
-              activeTab === "monthly"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
+          <button onClick={() => setActiveTab("monthly")} className={`flex-1 rounded-full py-3 text-sm font-medium transition-all ${activeTab === "monthly" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
             Monthly Plans
           </button>
-          <button
-            onClick={() => setActiveTab("weekly")}
-            className={`flex-1 rounded-full py-3 text-sm font-medium transition-all ${
-              activeTab === "weekly"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
+          <button onClick={() => setActiveTab("weekly")} className={`flex-1 rounded-full py-3 text-sm font-medium transition-all ${activeTab === "weekly" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
             Weekly Plans
           </button>
         </div>
@@ -215,25 +179,17 @@ const Pricing = () => {
 
       {/* Pricing Cards */}
       <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {plans.map((plan, index) => (
-          <div
-            key={index}
-            className={`bg-card border rounded-3xl p-6 flex flex-col relative ${
-              plan.isPopular ? "border-primary shadow-lg shadow-primary/20" : "border-border"
-            }`}
-          >
+        {plans.map((plan, index) => <div key={index} className={`bg-card border rounded-3xl p-6 flex flex-col relative ${plan.isPopular ? "border-primary shadow-lg shadow-primary/20" : "border-border"}`}>
             {/* Most Popular Badge */}
-            {plan.isPopular && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+            {plan.isPopular && <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                 <div className="bg-primary text-primary-foreground text-xs font-semibold px-4 py-1 rounded-full">
                   Most Popular
                 </div>
-              </div>
-            )}
+              </div>}
 
             {/* Icon & Name */}
             <div className="text-center mb-4">
-              <div className="text-4xl mb-2">{plan.icon}</div>
+              
               <h3 className="text-xl font-semibold text-foreground">{plan.name}</h3>
             </div>
 
@@ -248,27 +204,20 @@ const Pricing = () => {
 
             {/* Features */}
             <div className="space-y-2 mb-4 flex-1">
-              {plan.features.map((feature, idx) => (
-                <div key={idx} className="flex items-center gap-2 text-sm text-foreground/80">
+              {plan.features.map((feature, idx) => <div key={idx} className="flex items-center gap-2 text-sm text-foreground/80">
                   <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
                   <span>{feature}</span>
-                </div>
-              ))}
+                </div>)}
             </div>
 
             {/* Savings */}
             <p className="text-xs text-muted-foreground mb-4">{plan.savings}</p>
 
             {/* Button */}
-            <Button
-              onClick={() => handlePlanSelect(plan.name)}
-              className={`w-full rounded-full py-6 ${plan.buttonClass}`}
-              disabled={loading}
-            >
+            <Button onClick={() => handlePlanSelect(plan.name)} className={`w-full rounded-full py-6 ${plan.buttonClass}`} disabled={loading}>
               {loading ? "Processing..." : plan.buttonText}
             </Button>
-          </div>
-        ))}
+          </div>)}
       </div>
 
       {/* Confirmation Dialog */}
@@ -284,13 +233,10 @@ const Pricing = () => {
                 {selectedPlan === "Pro" && "Creation Boosted"}
                 {selectedPlan === "Premium" && "Creation Elevated"}
               </p>
-              <Button 
-                onClick={() => {
-                  setShowConfirmation(false);
-                  navigate("/home");
-                }}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 py-6 mt-4"
-              >
+              <Button onClick={() => {
+              setShowConfirmation(false);
+              navigate("/home");
+            }} className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 py-6 mt-4">
                 Enjoy Seamless Creation
               </Button>
             </AlertDialogDescription>
@@ -298,8 +244,6 @@ const Pricing = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-    </div>
-  );
+    </div>;
 };
-
 export default Pricing;
