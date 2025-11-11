@@ -5,16 +5,21 @@ import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-
 const Referral = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [userId, setUserId] = useState<string | null>(null);
-  const [referralStats, setReferralStats] = useState({ total: 0, credits: 0 });
+  const [referralStats, setReferralStats] = useState({
+    total: 0,
+    credits: 0
+  });
   const [referralLink, setReferralLink] = useState("");
-
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(({
+      data
+    }) => {
       if (data.user) {
         setUserId(data.user.id);
         setReferralLink(`${window.location.origin}/auth?ref=${data.user.id}`);
@@ -22,13 +27,10 @@ const Referral = () => {
       }
     });
   }, []);
-
   const fetchReferralStats = async (uid: string) => {
-    const { data } = await supabase
-      .from("referrals")
-      .select("*")
-      .eq("referrer_id", uid);
-    
+    const {
+      data
+    } = await supabase.from("referrals").select("*").eq("referrer_id", uid);
     if (data) {
       setReferralStats({
         total: data.length,
@@ -36,24 +38,23 @@ const Referral = () => {
       });
     }
   };
-
   const handleCopyLink = async () => {
     try {
       if (navigator.share) {
         await navigator.share({
           title: 'Join Cretera',
           text: 'Create amazing AI images with Cretera!',
-          url: referralLink,
+          url: referralLink
         });
         toast({
           title: "Shared Successfully — Rewards Await",
-          description: "You'll get 2 credits when your friend signs up!",
+          description: "You'll get 2 credits when your friend signs up!"
         });
       } else {
         await navigator.clipboard.writeText(referralLink);
         toast({
           title: "Shared Successfully — Rewards Await",
-          description: "Link copied! You'll get 2 credits when your friend signs up!",
+          description: "Link copied! You'll get 2 credits when your friend signs up!"
         });
       }
     } catch (error) {
@@ -61,19 +62,14 @@ const Referral = () => {
       await navigator.clipboard.writeText(referralLink);
       toast({
         title: "Shared Successfully — Rewards Await",
-        description: "Link copied! You'll get 2 credits when your friend signs up!",
+        description: "Link copied! You'll get 2 credits when your friend signs up!"
       });
     }
   };
-
-  return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,hsl(220_60%_15%),hsl(220_40%_5%))] p-4">
+  return <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,hsl(220_60%_15%),hsl(220_40%_5%))] p-4">
       {/* Header */}
       <header className="flex items-center gap-4 mb-8 max-w-2xl mx-auto">
-        <button
-          onClick={() => navigate("/home")}
-          className="w-10 h-10 rounded-full bg-card hover:bg-card/80 flex items-center justify-center"
-        >
+        <button onClick={() => navigate("/home")} className="w-10 h-10 rounded-full bg-card hover:bg-card/80 flex items-center justify-center">
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
         <h1 className="text-2xl text-foreground">Cretera Connect</h1>
@@ -112,10 +108,7 @@ const Referral = () => {
             <div className="flex-1 bg-muted/30 rounded-lg px-4 py-3 text-sm text-foreground/80 overflow-hidden text-ellipsis">
               {referralLink}
             </div>
-            <Button
-              onClick={handleCopyLink}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg px-6"
-            >
+            <Button onClick={handleCopyLink} className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg px-6">
               Invite
             </Button>
           </div>
@@ -152,14 +145,12 @@ const Referral = () => {
               </div>
               <div>
                 <div className="font-medium text-foreground">You Get Credits!</div>
-                <div className="text-sm text-muted-foreground">You receive 2 free credits when they sign up</div>
+                <div className="text-sm text-muted-foreground">You receive 2 free image credits when they sign up</div>
               </div>
             </div>
           </div>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Referral;
