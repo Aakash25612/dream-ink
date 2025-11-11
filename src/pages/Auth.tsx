@@ -72,12 +72,19 @@ const Auth = () => {
       // Check for referral code in URL
       const urlParams = new URLSearchParams(window.location.search);
       const referrerId = urlParams.get('ref');
+      
+      // For mobile app, use custom URL scheme; for web, use website URL
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const redirectTo = isMobile 
+        ? `app.lovable.3eff40be906e4a35b679ab63527eda85://auth${referrerId ? `?ref=${referrerId}` : ''}`
+        : `https://workdemoo.netlify.app/auth${referrerId ? `?ref=${referrerId}` : ''}`;
+      
       const {
         error
       } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `https://workdemoo.netlify.app/auth${referrerId ? `?ref=${referrerId}` : ''}`
+          redirectTo
         }
       });
       if (error) {
