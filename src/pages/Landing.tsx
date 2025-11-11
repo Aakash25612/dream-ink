@@ -20,7 +20,7 @@ const Landing = () => {
       <div className="text-center space-y-6 flex-1 flex flex-col justify-center">
         {/* CRETERA with neon blue glow */}
         <h1 
-          className="text-7xl md:text-9xl font-bold bg-gradient-to-r from-[hsl(200_100%_70%)] to-[hsl(217_91%_60%)] bg-clip-text text-transparent tracking-wide"
+          className="text-6xl md:text-9xl font-bold bg-gradient-to-r from-[hsl(200_100%_70%)] to-[hsl(217_91%_60%)] bg-clip-text text-transparent tracking-wide"
           style={{
             filter: "drop-shadow(0 0 40px hsl(200_100%_70% / 0.6)) drop-shadow(0 0 80px hsl(217_91%_60% / 0.4))"
           }}
