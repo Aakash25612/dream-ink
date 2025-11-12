@@ -167,7 +167,7 @@ const Home = () => {
     title: "Cretera Space",
     description: "Experience Infinite Imagination",
     color: "text-primary",
-    onClick: () => navigate("/space")
+    onClick: () => navigate("/home")
   }, {
     icon: Zap,
     title: "Power of Creation",
