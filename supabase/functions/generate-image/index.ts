@@ -45,11 +45,18 @@ serve(async (req) => {
       throw new Error(`Stability AI error: ${error}`);
     }
 
-    // Convert binary PNG response to base64
+    // Convert binary PNG response to base64 (handle large images)
     const imageBuffer = await response.arrayBuffer();
-    const imageBase64 = btoa(
-      String.fromCharCode(...new Uint8Array(imageBuffer))
-    );
+    const bytes = new Uint8Array(imageBuffer);
+    let binary = '';
+    const chunkSize = 0x8000; // 32KB chunks
+
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      const chunk = bytes.subarray(i, i + chunkSize);
+      binary += String.fromCharCode.apply(null, Array.from(chunk));
+    }
+
+    const imageBase64 = btoa(binary);
     
     console.log('Successfully generated image, base64 length:', imageBase64.length);
 
