@@ -24,9 +24,22 @@ const Creations = () => {
 
   const fetchCreations = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "Please log in to view your creations",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('creations')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -56,21 +69,34 @@ const Creations = () => {
 
   const handleDownload = async (imageUrl: string, prompt: string) => {
     try {
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `cretera-${prompt.slice(0, 30).replace(/\s+/g, '-')}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      // For mobile devices, open the image in a new tab for long-press save
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      if (isMobile) {
+        // On mobile, open image in new tab where user can long-press to save
+        window.open(imageUrl, '_blank');
+        toast({
+          title: "Image opened",
+          description: "Long-press the image to save it to your gallery",
+        });
+      } else {
+        // Desktop download
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `cretera-${prompt.slice(0, 30).replace(/\s+/g, '-')}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
 
-      toast({
-        title: "🖨️ Creation downloaded to your device.",
-        description: "Image saved successfully",
-      });
+        toast({
+          title: "Downloaded",
+          description: "Image saved to your downloads",
+        });
+      }
     } catch (error) {
       console.error('Download error:', error);
       toast({
