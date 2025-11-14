@@ -48,40 +48,50 @@ const CreatedImage = () => {
     try {
       setIsSharing(true);
 
-      // Check if Web Share API is available
-      if (navigator.share) {
-        const response = await fetch(imageUrl);
-        const blob = await response.blob();
-        const file = new File([blob], 'cretera-creation.png', { type: 'image/png' });
+      // Fetch and prepare the image for sharing
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const file = new File([blob], 'cretera-creation.png', { type: 'image/png' });
 
-        await navigator.share({
+      // Check if Web Share API is available and can share files
+      if (navigator.share && navigator.canShare) {
+        const shareData = {
           files: [file],
           title: 'My Cretera Creation',
-          text: prompt || 'Check out my creation from Cretera!',
-        });
+          text: prompt || 'Check out my creation from Cretera! 🎨✨',
+        };
 
-        toast({
-          title: "✈️ Creation shared successfully.",
-          description: "Image shared",
-        });
-      } else {
-        // Fallback: copy link to clipboard
-        await navigator.clipboard.writeText(imageUrl);
-        toast({
-          title: "Link copied",
-          description: "Image link copied to clipboard",
-        });
+        // Verify this specific data can be shared
+        if (navigator.canShare(shareData)) {
+          await navigator.share(shareData);
+          // User successfully shared
+          toast({
+            title: "Shared Successfully!",
+            description: "Your creation has been shared"
+          });
+          return;
+        }
       }
+
+      // Fallback: copy image URL to clipboard
+      await navigator.clipboard.writeText(imageUrl);
+      toast({
+        title: "Link Copied",
+        description: "Image link copied to clipboard for sharing"
+      });
     } catch (error) {
-      // User cancelled share or error occurred
-      if (error instanceof Error && error.name !== 'AbortError') {
-        console.error('Share error:', error);
-        toast({
-          title: "Error",
-          description: "Failed to share image",
-          variant: "destructive",
-        });
+      // User cancelled share dialog - don't show error
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
       }
+
+      // Actual error occurred
+      console.error('Share error:', error);
+      toast({
+        title: "Error",
+        description: "Could not share image. Try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSharing(false);
     }
