@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Gift, ArrowLeft, Copy, Users, Trophy } from "lucide-react";
+import { Gift, ArrowLeft, Share2, Users, Trophy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
@@ -40,30 +40,53 @@ const Referral = () => {
   };
   const handleCopyLink = async () => {
     try {
-      if (navigator.share) {
-        await navigator.share({
+      // Check if Web Share API is available and supported
+      if (navigator.share && navigator.canShare) {
+        const shareData = {
           title: 'Join Cretera',
-          text: 'Create amazing AI images with Cretera!',
+          text: 'Create amazing AI images with Cretera! 🎨✨',
           url: referralLink
-        });
-        toast({
-          title: "Shared Successfully — Rewards Await",
-          description: "You'll get 2 credits when your friend signs up!"
-        });
-      } else {
-        await navigator.clipboard.writeText(referralLink);
-        toast({
-          title: "Shared Successfully — Rewards Await",
-          description: "Link copied! You'll get 2 credits when your friend signs up!"
-        });
+        };
+
+        // Check if this data can be shared
+        if (navigator.canShare(shareData)) {
+          await navigator.share(shareData);
+          // User completed share action (selected an app)
+          toast({
+            title: "Share Successful!",
+            description: "Earn 2 credits when your friend signs up!"
+          });
+          return;
+        }
       }
-    } catch (error) {
-      // Fallback to clipboard if share fails
+      
+      // Fallback to clipboard copy for desktop or unsupported browsers
       await navigator.clipboard.writeText(referralLink);
       toast({
-        title: "Shared Successfully — Rewards Await",
-        description: "Link copied! You'll get 2 credits when your friend signs up!"
+        title: "Link Copied!",
+        description: "Paste and share to earn 2 credits when friends sign up!"
       });
+    } catch (error) {
+      // User cancelled share or error occurred
+      if ((error as Error).name === 'AbortError') {
+        // User cancelled the share dialog - don't show error toast
+        return;
+      }
+      
+      // Try clipboard as final fallback
+      try {
+        await navigator.clipboard.writeText(referralLink);
+        toast({
+          title: "Link Copied!",
+          description: "Share link copied to clipboard"
+        });
+      } catch {
+        toast({
+          title: "Error",
+          description: "Could not copy link. Please try again.",
+          variant: "destructive"
+        });
+      }
     }
   };
   return <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,hsl(220_60%_15%),hsl(220_40%_5%))] p-4">
@@ -108,7 +131,11 @@ const Referral = () => {
             <div className="flex-1 bg-muted/30 rounded-lg px-4 py-3 text-sm text-foreground/80 overflow-hidden text-ellipsis">
               {referralLink}
             </div>
-            <Button onClick={handleCopyLink} className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg px-6">
+            <Button 
+              onClick={handleCopyLink} 
+              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg px-6 flex items-center gap-2"
+            >
+              <Share2 className="w-4 h-4" />
               Invite
             </Button>
           </div>
