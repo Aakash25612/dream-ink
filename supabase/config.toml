@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.maintenance]
 verify_jwt = false
+
+[functions.send-magic-link]
+verify_jwt = false
