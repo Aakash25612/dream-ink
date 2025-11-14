@@ -4,9 +4,7 @@ import { Resend } from 'https://esm.sh/resend@2.0.0'
 const resend = new Resend(Deno.env.get('RESEND_API_KEY') as string)
 const hookSecret = Deno.env.get('SEND_EMAIL_HOOK_SECRET') as string
 
-const createMagicLinkEmail = (token: string, supabase_url: string, email_action_type: string, redirect_to: string, token_hash: string) => {
-  const magicLink = `${supabase_url}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${redirect_to}`;
-  
+const createOtpEmail = (token: string) => {
   return `
     <!DOCTYPE html>
     <html>
@@ -22,23 +20,14 @@ const createMagicLinkEmail = (token: string, supabase_url: string, email_action_
                 <tr>
                   <td>
                     <h1 style="color: #89CFF0; font-size: 32px; font-weight: bold; margin: 0 0 20px; padding: 0;">Welcome to CRETERA</h1>
-                    <p style="color: #e0e0e0; font-size: 14px; margin: 12px 0;">Click the button below to sign in to your account:</p>
+                    <p style="color: #e0e0e0; font-size: 16px; margin: 12px 0 32px;">Enter this code in the app to sign in:</p>
                     
-                    <table width="100%" cellpadding="0" cellspacing="0" style="margin: 24px 0;">
-                      <tr>
-                        <td align="center">
-                          <a href="${magicLink}" style="background-color: #4A90E2; color: #ffffff; font-size: 16px; font-weight: bold; text-decoration: none; text-align: center; display: inline-block; padding: 16px 32px; border-radius: 9999px; margin: 0;">Sign in to CRETERA</a>
-                        </td>
-                      </tr>
-                    </table>
-                    
-                    <p style="color: #e0e0e0; font-size: 14px; margin: 24px 0 12px;">Or, copy and paste this temporary login code:</p>
-                    
-                    <div style="background-color: #2a2a3e; border-radius: 5px; border: 1px solid #3a3a4e; padding: 16px; margin: 0;">
-                      <code style="color: #89CFF0; font-family: monospace; font-size: 18px; font-weight: bold; letter-spacing: 2px; text-align: center; display: block;">${token}</code>
+                    <div style="background-color: #2a2a3e; border-radius: 8px; border: 2px solid #4A90E2; padding: 32px; margin: 0 0 32px;">
+                      <code style="color: #89CFF0; font-family: 'Courier New', monospace; font-size: 42px; font-weight: bold; letter-spacing: 8px; text-align: center; display: block;">${token}</code>
                     </div>
                     
-                    <p style="color: #ababab; font-size: 14px; margin: 14px 0 16px;">If you didn't try to login, you can safely ignore this email.</p>
+                    <p style="color: #e0e0e0; font-size: 14px; margin: 14px 0 8px; text-align: center;">This code will expire in 60 seconds</p>
+                    <p style="color: #ababab; font-size: 14px; margin: 8px 0 16px; text-align: center;">If you didn't request this code, you can safely ignore this email.</p>
                     
                     <p style="color: #898989; font-size: 12px; line-height: 22px; margin: 32px 0 0; text-align: center;">CRETERA - Experience Infinite Imagination</p>
                   </td>
@@ -80,20 +69,14 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log('Sending magic link email to:', user.email)
+    console.log('Sending OTP email to:', user.email)
 
-    const html = createMagicLinkEmail(
-      token,
-      Deno.env.get('SUPABASE_URL') ?? '',
-      email_action_type,
-      redirect_to,
-      token_hash
-    );
+    const html = createOtpEmail(token);
 
     const { error } = await resend.emails.send({
-      from: 'CRETERA <auth@auth.kreverk.com>',
+      from: 'CRETERA <auth@kreverk.com>',
       to: [user.email],
-      subject: 'Sign in to CRETERA',
+      subject: 'Your CRETERA Login Code',
       html,
     })
     
@@ -102,7 +85,7 @@ Deno.serve(async (req) => {
       throw error
     }
 
-    console.log('Magic link email sent successfully')
+    console.log('OTP email sent successfully')
   } catch (error) {
     console.error('Error in send-magic-link function:', error)
     return new Response(
