@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+const stabilityApiKey = Deno.env.get('STABILITY_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,54 +16,42 @@ serve(async (req) => {
   try {
     const { prompt } = await req.json();
 
-    console.log('Generating image with prompt:', prompt);
+    console.log('Generating image with Stability AI, prompt:', prompt);
+
+    if (!stabilityApiKey) {
+      throw new Error('STABILITY_API_KEY not configured');
+    }
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${geminiApiKey}`,
+      'https://api.stability.ai/v2beta/stable-diffusion-xl-lightning',
       {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${stabilityApiKey}`,
           'Content-Type': 'application/json',
+          'Accept': 'image/png',
         },
         body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: `Generate an image: ${prompt}`
-                }
-              ]
-            }
-          ],
-          generationConfig: {
-            responseModalities: ["image"]
-          }
+          model: 'stable-diffusion-xl-lightning',
+          prompt: prompt,
+          output_format: 'png'
         }),
       }
     );
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('Gemini API error:', error);
-      throw new Error(`Gemini API error: ${error}`);
+      console.error('Stability AI error:', response.status, error);
+      throw new Error(`Stability AI error: ${error}`);
     }
 
-    const data = await response.json();
-    console.log('Gemini API response structure:', JSON.stringify(data, null, 2));
-    
-    // Extract the base64 image from the response
-    const imagePart = data.candidates?.[0]?.content?.parts?.find(
-      (part: any) => part.inlineData
+    // Convert binary PNG response to base64
+    const imageBuffer = await response.arrayBuffer();
+    const imageBase64 = btoa(
+      String.fromCharCode(...new Uint8Array(imageBuffer))
     );
     
-    if (!imagePart?.inlineData?.data) {
-      console.error('Failed to find image data. Full response:', JSON.stringify(data));
-      console.error('Candidates:', data.candidates);
-      throw new Error('No image data in response');
-    }
-    
-    const imageBase64 = imagePart.inlineData.data;
-    console.log('Successfully extracted image, base64 length:', imageBase64.length);
+    console.log('Successfully generated image, base64 length:', imageBase64.length);
 
     return new Response(
       JSON.stringify({ image: `data:image/png;base64,${imageBase64}` }),
