@@ -218,32 +218,67 @@ const Auth = () => {
               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-lg py-6 rounded-full"
               disabled={isLoading}
             >
-              {isLoading ? "Sending..." : "Send Magic Link"}
+              {isLoading ? "Sending..." : "Send Code"}
             </Button>
           </form>
         ) : (
-          <div className="w-full max-w-md text-center space-y-6">
-            <div className="bg-card/50 border-2 border-primary/30 rounded-2xl p-8 space-y-4">
-              <Mail className="w-16 h-16 text-primary mx-auto" />
-              <h2 className="text-2xl font-bold text-foreground">Check your email</h2>
-              <p className="text-muted-foreground">
-                We've sent a magic link to <span className="text-foreground font-medium">{email}</span>
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Click the link in the email to sign in
-              </p>
+          <div className="w-full max-w-md space-y-6">
+            <div className="bg-card/50 border-2 border-primary/30 rounded-2xl p-8 space-y-6">
+              <div className="space-y-2 text-center">
+                <h2 className="text-2xl font-bold text-foreground">Enter verification code</h2>
+                <p className="text-muted-foreground">
+                  We sent a 6-digit code to <span className="text-foreground font-medium">{email}</span>
+                </p>
+              </div>
+
+              <div className="flex flex-col items-center space-y-6">
+                <InputOTP
+                  maxLength={6}
+                  value={otp}
+                  onChange={(value) => setOtp(value)}
+                  onComplete={handleVerifyOtp}
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+
+                <Button
+                  onClick={handleVerifyOtp}
+                  size="lg"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-lg py-6 rounded-full"
+                  disabled={isVerifying || otp.length !== 6}
+                >
+                  {isVerifying ? "Verifying..." : "Verify Code"}
+                </Button>
+
+                <div className="flex flex-col items-center space-y-3 w-full">
+                  <Button
+                    variant="ghost"
+                    onClick={handleResendCode}
+                    disabled={resendCooldown > 0 || isLoading}
+                    className="text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    {resendCooldown > 0 
+                      ? `Resend code in ${resendCooldown}s` 
+                      : "Resend code"}
+                  </Button>
+                  
+                  <Button
+                    variant="ghost"
+                    onClick={handleUseDifferentEmail}
+                    className="text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    Use a different email
+                  </Button>
+                </div>
+              </div>
             </div>
-            
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setEmailSent(false);
-                setEmail("");
-              }}
-              className="border-2 border-primary/30"
-            >
-              Try another email
-            </Button>
           </div>
         )}
       </div>
