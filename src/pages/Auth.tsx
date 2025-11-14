@@ -1,14 +1,19 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
+const emailSchema = z.string().email("Please enter a valid email address");
+
 const Auth = () => {
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+  const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   useEffect(() => {
     // Listen for auth changes first
     const {
@@ -67,39 +72,58 @@ const Auth = () => {
     });
     return () => subscription.unsubscribe();
   }, [navigate, toast]);
-  const handleGoogleSignIn = async () => {
+  const handleEmailSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate email
+    const validation = emailSchema.safeParse(email);
+    if (!validation.success) {
+      toast({
+        title: "Invalid Email",
+        description: validation.error.errors[0].message,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    
     try {
       // Check for referral code in URL
       const urlParams = new URLSearchParams(window.location.search);
       const referrerId = urlParams.get('ref');
       
-      // For mobile app, use custom URL scheme; for web, use website URL
-      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      const redirectTo = isMobile 
-        ? `app.lovable.3eff40be906e4a35b679ab63527eda85://auth${referrerId ? `?ref=${referrerId}` : ''}`
-        : `https://workdemoo.netlify.app/auth${referrerId ? `?ref=${referrerId}` : ''}`;
+      const redirectTo = `${window.location.origin}/auth${referrerId ? `?ref=${referrerId}` : ''}`;
       
-      const {
-        error
-      } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
         options: {
-          redirectTo
+          emailRedirectTo: redirectTo,
+          data: referrerId ? { referrer_id: referrerId } : undefined
         }
       });
+      
       if (error) {
         toast({
           title: "Error",
           description: error.message,
           variant: "destructive"
         });
+      } else {
+        setEmailSent(true);
+        toast({
+          title: "Check your email",
+          description: "We've sent you a magic link to sign in"
+        });
       }
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to sign in with Google",
+        description: "Failed to send magic link",
         variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
     }
   };
   return <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,hsl(220_60%_15%),hsl(220_40%_5%))] flex flex-col p-4">
@@ -111,7 +135,7 @@ const Auth = () => {
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center space-y-12 max-w-xl mx-auto">
+      <div className="flex-1 flex flex-col items-center justify-center space-y-12 max-w-xl mx-auto w-full px-4">
         {/* Branding */}
         <div className="text-center space-y-6">
           <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-[hsl(200_100%_70%)] to-[hsl(217_91%_60%)] bg-clip-text text-transparent">
@@ -120,16 +144,58 @@ const Auth = () => {
           <p className="text-2xl text-foreground/90">Sign in to start creation.</p>
         </div>
 
-        {/* Google Sign In Button */}
-        <Button onClick={handleGoogleSignIn} size="lg" className="bg-card hover:bg-card/80 text-foreground border-2 border-primary/30 text-lg px-12 py-6 rounded-full flex items-center gap-3">
-          <svg className="w-6 h-6" viewBox="0 0 24 24">
-            <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-            <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-            <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-            <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-          </svg>
-          Sign in with Google
-        </Button>
+        {/* Email Sign In Form */}
+        {!emailSent ? (
+          <form onSubmit={handleEmailSignIn} className="w-full max-w-md space-y-6">
+            <div className="space-y-4">
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-12 h-14 text-lg bg-card border-2 border-primary/30 rounded-full"
+                  disabled={isLoading}
+                  required
+                />
+              </div>
+            </div>
+            
+            <Button 
+              type="submit" 
+              size="lg" 
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-lg py-6 rounded-full"
+              disabled={isLoading}
+            >
+              {isLoading ? "Sending..." : "Send Magic Link"}
+            </Button>
+          </form>
+        ) : (
+          <div className="w-full max-w-md text-center space-y-6">
+            <div className="bg-card/50 border-2 border-primary/30 rounded-2xl p-8 space-y-4">
+              <Mail className="w-16 h-16 text-primary mx-auto" />
+              <h2 className="text-2xl font-bold text-foreground">Check your email</h2>
+              <p className="text-muted-foreground">
+                We've sent a magic link to <span className="text-foreground font-medium">{email}</span>
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Click the link in the email to sign in
+              </p>
+            </div>
+            
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setEmailSent(false);
+                setEmail("");
+              }}
+              className="border-2 border-primary/30"
+            >
+              Try another email
+            </Button>
+          </div>
+        )}
       </div>
     </div>;
 };
