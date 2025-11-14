@@ -75,7 +75,7 @@ Deno.serve(async (req) => {
     const html = createOtpEmail(token);
 
     const { error } = await resend.emails.send({
-      from: 'CRETERA <auth@kreverk.com>',
+      from: 'CRETERA <noreply@auth.kreverk.com>',
       to: [user.email],
       subject: 'Your CRETERA Login Code',
       html,
