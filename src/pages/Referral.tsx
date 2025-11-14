@@ -40,40 +40,38 @@ const Referral = () => {
   };
   const handleCopyLink = async () => {
     try {
-      // Check if Web Share API is available and supported
-      if (navigator.share && navigator.canShare) {
+      // Check if Web Share API is available
+      if (navigator.share) {
         const shareData = {
           title: 'Join Cretera',
           text: 'Create amazing AI images with Cretera! 🎨✨',
           url: referralLink
         };
 
-        // Check if this data can be shared
-        if (navigator.canShare(shareData)) {
+        // Check if this specific data can be shared (optional, but good practice)
+        if (!navigator.canShare || navigator.canShare(shareData)) {
           await navigator.share(shareData);
-          // User completed share action (selected an app)
           toast({
-            title: "Share Successful!",
+            title: "Shared!",
             description: "Earn 2 credits when your friend signs up!"
           });
           return;
         }
       }
       
-      // Fallback to clipboard copy for desktop or unsupported browsers
+      // Fallback to clipboard copy
       await navigator.clipboard.writeText(referralLink);
       toast({
         title: "Link Copied!",
         description: "Paste and share to earn 2 credits when friends sign up!"
       });
     } catch (error) {
-      // User cancelled share or error occurred
+      // User cancelled share dialog
       if ((error as Error).name === 'AbortError') {
-        // User cancelled the share dialog - don't show error toast
         return;
       }
       
-      // Try clipboard as final fallback
+      // Try clipboard as fallback
       try {
         await navigator.clipboard.writeText(referralLink);
         toast({
