@@ -98,31 +98,10 @@ const Settings = () => {
             <h3 className="text-lg font-semibold text-foreground">Privacy & Security</h3>
           </div>
           
-          <Button
-            variant="outline"
-            className="w-full justify-start text-foreground border-border"
-            onClick={() => {
-              toast({
-                title: "Coming Soon",
-                description: "Password change feature will be available soon.",
-              });
-            }}
-          >
-            Change Password
-          </Button>
-          
-          <Button
-            variant="outline"
-            className="w-full justify-start text-foreground border-border"
-            onClick={() => {
-              toast({
-                title: "Coming Soon",
-                description: "Privacy settings will be available soon.",
-              });
-            }}
-          >
-            Privacy Settings
-          </Button>
+          <div className="flex items-center justify-between">
+            <div className="text-foreground">Privacy Settings</div>
+            <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">Coming Soon</span>
+          </div>
         </Card>
 
         {/* Danger Zone */}
