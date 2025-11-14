@@ -3,6 +3,7 @@ import { Resend } from 'https://esm.sh/resend@2.0.0'
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY') as string)
 const hookSecret = Deno.env.get('SEND_EMAIL_HOOK_SECRET') as string
+const base64Secret = hookSecret.replace('v1,whsec_', '')
 
 const createOtpEmail = (token: string) => {
   return `
@@ -48,7 +49,7 @@ Deno.serve(async (req) => {
 
   const payload = await req.text()
   const headers = Object.fromEntries(req.headers)
-  const wh = new Webhook(hookSecret)
+  const wh = new Webhook(base64Secret)
   
   try {
     const {
