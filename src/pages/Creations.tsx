@@ -69,39 +69,56 @@ const Creations = () => {
 
   const handleDownload = async (imageUrl: string, prompt: string) => {
     try {
-      // For mobile devices, open the image in a new tab for long-press save
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       
-      if (isMobile) {
-        // On mobile, open image in new tab where user can long-press to save
-        window.open(imageUrl, '_blank');
-        toast({
-          title: "Image opened",
-          description: "Long-press the image to save it to your gallery",
-        });
-      } else {
-        // Desktop download
-        const response = await fetch(imageUrl);
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `cretera-${prompt.slice(0, 30).replace(/\s+/g, '-')}.png`;
-        document.body.appendChild(link);
-        link.click();
+      // Fetch the image
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const fileName = `cretera-${prompt.slice(0, 30).replace(/\s+/g, '-')}.png`;
+      
+      // Try Web Share API first (works best on mobile for saving to gallery)
+      if (isMobile && navigator.share && navigator.canShare) {
+        const file = new File([blob], fileName, { type: 'image/png' });
+        
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: 'Save Creation',
+            text: prompt
+          });
+          
+          toast({
+            title: "Shared",
+            description: "Choose 'Save to Photos' or 'Save Image' to add to your gallery",
+          });
+          return;
+        }
+      }
+      
+      // Fallback: Traditional download
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      setTimeout(() => {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
+      }, 100);
 
-        toast({
-          title: "Downloaded",
-          description: "Image saved to your downloads",
-        });
-      }
+      toast({
+        title: isMobile ? "Download started" : "Downloaded",
+        description: isMobile ? "Check your Downloads folder or notification" : "Image saved to your downloads",
+      });
     } catch (error) {
       console.error('Download error:', error);
       toast({
         title: "Error",
-        description: "Failed to download image",
+        description: "Failed to download image. Try long-pressing the image to save.",
         variant: "destructive",
       });
     }
