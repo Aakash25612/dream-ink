@@ -53,20 +53,19 @@ const CreatedImage = () => {
       const blob = await response.blob();
       const file = new File([blob], 'cretera-creation.png', { type: 'image/png' });
 
-      // Check if Web Share API is available and can share files
-      if (navigator.share && navigator.canShare) {
+      // Check if Web Share API is available
+      if (navigator.share) {
         const shareData = {
           files: [file],
           title: 'My Cretera Creation',
           text: prompt || 'Check out my creation from Cretera! 🎨✨',
         };
 
-        // Verify this specific data can be shared
-        if (navigator.canShare(shareData)) {
+        // Check if this specific data can be shared (optional for file sharing)
+        if (!navigator.canShare || navigator.canShare(shareData)) {
           await navigator.share(shareData);
-          // User successfully shared
           toast({
-            title: "Shared Successfully!",
+            title: "Shared!",
             description: "Your creation has been shared"
           });
           return;
@@ -80,7 +79,7 @@ const CreatedImage = () => {
         description: "Image link copied to clipboard for sharing"
       });
     } catch (error) {
-      // User cancelled share dialog - don't show error
+      // User cancelled share dialog
       if (error instanceof Error && error.name === 'AbortError') {
         return;
       }
