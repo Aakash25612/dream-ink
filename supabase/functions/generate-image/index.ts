@@ -16,26 +16,26 @@ serve(async (req) => {
   try {
     const { prompt } = await req.json();
 
-    console.log('Generating image with Stability AI, prompt:', prompt);
+    console.log('Generating image with Stability AI Core, prompt:', prompt);
 
     if (!stabilityApiKey) {
       throw new Error('STABILITY_API_KEY not configured');
     }
 
+    // Create form data for Stable Image Core
+    const formData = new FormData();
+    formData.append('prompt', prompt);
+    formData.append('output_format', 'png');
+
     const response = await fetch(
-      'https://api.stability.ai/v2beta/stable-diffusion-xl-lightning',
+      'https://api.stability.ai/v2beta/stable-image/generate/core',
       {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${stabilityApiKey}`,
-          'Content-Type': 'application/json',
-          'Accept': 'image/png',
+          'Accept': 'image/*',
         },
-        body: JSON.stringify({
-          model: 'stable-diffusion-xl-lightning',
-          prompt: prompt,
-          output_format: 'png'
-        }),
+        body: formData,
       }
     );
 
