@@ -1,19 +1,22 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { ArrowLeft, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 const emailSchema = z.string().email("Please enter a valid email address");
 
 const Auth = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   useEffect(() => {
     // Listen for auth changes first
     const {
@@ -26,10 +29,7 @@ const Auth = () => {
         const {
           data: profile
         } = await supabase.from('profiles').select('is_first_time').eq('id', session.user.id).single();
-        toast({
-          title: "Success",
-          description: "Signed in successfully!"
-        });
+        toast.success("Signed in successfully!");
 
         // Navigate to intro screen for first-time users, splash for returning users
         if (profile?.is_first_time) {
@@ -71,60 +71,110 @@ const Auth = () => {
       }
     });
     return () => subscription.unsubscribe();
-  }, [navigate, toast]);
+  }, [navigate]);
+
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate email
-    const validation = emailSchema.safeParse(email);
-    if (!validation.success) {
-      toast({
-        title: "Invalid Email",
-        description: validation.error.errors[0].message,
-        variant: "destructive"
-      });
-      return;
-    }
-
     setIsLoading(true);
-    
+
     try {
-      // Check for referral code in URL
+      emailSchema.parse(email);
+
       const urlParams = new URLSearchParams(window.location.search);
       const referrerId = urlParams.get('ref');
-      
       const redirectTo = `${window.location.origin}/auth${referrerId ? `?ref=${referrerId}` : ''}`;
-      
+
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
           emailRedirectTo: redirectTo,
           data: referrerId ? { referrer_id: referrerId } : undefined
-        }
+        },
       });
-      
-      if (error) {
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive"
-        });
-      } else {
-        setEmailSent(true);
-        toast({
-          title: "Check your email",
-          description: "We've sent you a magic link to sign in"
-        });
-      }
+
+      if (error) throw error;
+
+      setEmailSent(true);
+      setResendCooldown(60);
+      toast.success("Check your email for the 6-digit code!");
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to send magic link",
-        variant: "destructive"
-      });
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+      } else {
+        toast.error("Failed to send login code. Please try again.");
+        console.error("Error sending login code:", error);
+      }
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (otp.length !== 6) {
+      toast.error("Please enter a valid 6-digit code");
+      return;
+    }
+
+    setIsVerifying(true);
+
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email: email.trim(),
+        token: otp,
+        type: 'email',
+      });
+
+      if (error) throw error;
+
+      toast.success("Successfully signed in!");
+    } catch (error: any) {
+      toast.error(error.message || "Invalid code. Please try again.");
+      console.error("Error verifying OTP:", error);
+      setOtp("");
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    if (resendCooldown > 0) return;
+    
+    setIsLoading(true);
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const referrerId = urlParams.get('ref');
+      const redirectTo = `${window.location.origin}/auth${referrerId ? `?ref=${referrerId}` : ''}`;
+
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: {
+          emailRedirectTo: redirectTo,
+          data: referrerId ? { referrer_id: referrerId } : undefined
+        },
+      });
+
+      if (error) throw error;
+
+      setResendCooldown(60);
+      toast.success("New code sent to your email!");
+    } catch (error) {
+      toast.error("Failed to resend code. Please try again.");
+      console.error("Error resending code:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUseDifferentEmail = () => {
+    setEmailSent(false);
+    setOtp("");
+    setEmail("");
   };
   return <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,hsl(220_60%_15%),hsl(220_40%_5%))] flex flex-col p-4">
       {/* Header */}
