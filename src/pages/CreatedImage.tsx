@@ -103,11 +103,35 @@ const CreatedImage = () => {
       }
 
       // Fallback: copy image URL to clipboard
-      await navigator.clipboard.writeText(imageUrl);
-      toast({
-        title: "Link Copied",
-        description: "Image link copied to clipboard for sharing"
-      });
+      try {
+        await navigator.clipboard.writeText(imageUrl);
+        toast({
+          title: "Link Copied",
+          description: "Image link copied to clipboard for sharing"
+        });
+      } catch (clipboardError) {
+        // Second fallback: Use textarea method (more reliable in PWAs)
+        const textArea = document.createElement('textarea');
+        textArea.value = imageUrl;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+          document.execCommand('copy');
+          textArea.remove();
+          toast({
+            title: "Link Copied",
+            description: "Image link copied to clipboard"
+          });
+        } catch (execError) {
+          textArea.remove();
+          throw new Error('Failed to copy link');
+        }
+      }
     } catch (error) {
       // User cancelled share dialog
       if (error instanceof Error && error.name === 'AbortError') {
