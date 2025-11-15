@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { decode as base64Decode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const stabilityApiKey = Deno.env.get('STABILITY_API_KEY');
 
@@ -33,12 +34,8 @@ serve(async (req) => {
     if (referenceImage) {
       // Convert base64 to blob for image-to-image
       const base64Data = referenceImage.split(',')[1];
-      const binaryString = atob(base64Data);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      const blob = new Blob([bytes], { type: 'image/png' });
+      const decodedBytes = base64Decode(base64Data);
+      const blob = new Blob([new Uint8Array(decodedBytes)], { type: 'image/png' });
       
       formData.append('image', blob, 'reference.png');
       formData.append('strength', '0.7'); // Control how much the output differs from input
@@ -64,14 +61,14 @@ serve(async (req) => {
     // Convert binary PNG response to base64 (handle large images)
     const imageBuffer = await response.arrayBuffer();
     const bytes = new Uint8Array(imageBuffer);
+    
+    // Use chunks to avoid call stack size exceeded
     let binary = '';
     const chunkSize = 0x8000; // 32KB chunks
-
     for (let i = 0; i < bytes.length; i += chunkSize) {
-      const chunk = bytes.subarray(i, i + chunkSize);
-      binary += String.fromCharCode.apply(null, Array.from(chunk));
+      const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
+      binary += String.fromCharCode(...chunk);
     }
-
     const imageBase64 = btoa(binary);
     
     console.log('Successfully generated image, base64 length:', imageBase64.length);
