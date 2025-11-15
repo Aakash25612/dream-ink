@@ -95,32 +95,28 @@ const CreatedImage = () => {
         }
       }
       
-      // Fallback to clipboard copy
-      await navigator.clipboard.writeText(imageUrl);
-      toast({
-        title: "Link Copied!",
-        description: "Image link copied to clipboard for sharing"
-      });
+      // Fallback: Copy from hidden input (more reliable in PWA)
+      const input = document.getElementById('image-url-input') as HTMLInputElement;
+      if (input) {
+        input.select();
+        document.execCommand('copy');
+        toast({
+          title: "Link Copied!",
+          description: "Image link copied to clipboard for sharing"
+        });
+      }
     } catch (error) {
       // User cancelled share dialog
       if ((error as Error).name === 'AbortError') {
         return;
       }
       
-      // Try clipboard as fallback
-      try {
-        await navigator.clipboard.writeText(imageUrl);
-        toast({
-          title: "Link Copied!",
-          description: "Share link copied to clipboard"
-        });
-      } catch {
-        toast({
-          title: "Error",
-          description: "Could not copy link. Try long-pressing the image to save or share.",
-          variant: "destructive"
-        });
-      }
+      // Final fallback
+      toast({
+        title: "Error",
+        description: "Could not copy link. Try long-pressing the image to save or share.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -140,6 +136,16 @@ const CreatedImage = () => {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-center px-4 pb-8">
+        {/* Hidden input for clipboard access */}
+        <input
+          id="image-url-input"
+          type="text"
+          value={imageUrl}
+          readOnly
+          className="absolute opacity-0 pointer-events-none"
+          aria-hidden="true"
+        />
+        
         {/* Image Display */}
         <div className="w-full max-w-2xl mb-8">
           <div className="relative aspect-square bg-card/50 rounded-2xl overflow-hidden border-2 border-primary/30">
