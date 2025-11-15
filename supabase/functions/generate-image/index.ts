@@ -14,30 +14,45 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt } = await req.json();
+    const { prompt, referenceImage } = await req.json();
 
-    console.log('Generating image with Stability AI Core, prompt:', prompt);
+    console.log('Generating image with Stability AI, prompt:', prompt, 'hasReference:', !!referenceImage);
 
     if (!stabilityApiKey) {
       throw new Error('STABILITY_API_KEY not configured');
     }
 
-    // Create form data for Stable Image Core
+    // Create form data
     const formData = new FormData();
     formData.append('prompt', prompt);
     formData.append('output_format', 'png');
 
-    const response = await fetch(
-      'https://api.stability.ai/v2beta/stable-image/generate/core',
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${stabilityApiKey}`,
-          'Accept': 'image/*',
-        },
-        body: formData,
+    // If reference image provided, use image-to-image endpoint
+    let apiUrl = 'https://api.stability.ai/v2beta/stable-image/generate/core';
+    
+    if (referenceImage) {
+      // Convert base64 to blob for image-to-image
+      const base64Data = referenceImage.split(',')[1];
+      const binaryString = atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
       }
-    );
+      const blob = new Blob([bytes], { type: 'image/png' });
+      
+      formData.append('image', blob, 'reference.png');
+      formData.append('strength', '0.7'); // Control how much the output differs from input
+      apiUrl = 'https://api.stability.ai/v2beta/stable-image/generate/sd3';
+    }
+
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${stabilityApiKey}`,
+        'Accept': 'image/*',
+      },
+      body: formData,
+    });
 
     if (!response.ok) {
       const error = await response.text();
