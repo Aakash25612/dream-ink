@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, Edit, Download, Share2 } from "lucide-react";
+import { ArrowLeft, Download, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -19,26 +19,56 @@ const CreatedImage = () => {
 
   const handleDownload = async () => {
     try {
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      // Fetch the image
       const response = await fetch(imageUrl);
       const blob = await response.blob();
+      const fileName = `cretera-${prompt?.slice(0, 30).replace(/\s+/g, '-') || 'creation'}.png`;
+      
+      // Try Web Share API first (works best on mobile for saving to gallery)
+      if (isMobile && navigator.share) {
+        const file = new File([blob], fileName, { type: 'image/png' });
+        
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: 'Save Creation',
+            text: prompt || 'My Cretera Creation'
+          });
+          
+          toast({
+            title: "Shared",
+            description: "Choose 'Save to Photos' or 'Save Image' to add to your gallery",
+          });
+          return;
+        }
+      }
+      
+      // Fallback: Traditional download
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `cretera-${prompt?.slice(0, 30).replace(/\s+/g, '-') || 'creation'}.png`;
+      link.download = fileName;
+      link.style.display = 'none';
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      
+      // Clean up
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 100);
 
       toast({
-        title: "🖨️ Creation downloaded to your device.",
-        description: "Image saved successfully",
+        title: isMobile ? "Download started" : "Downloaded",
+        description: isMobile ? "Check your Downloads folder or notification" : "Image saved to your downloads",
       });
     } catch (error) {
       console.error('Download error:', error);
       toast({
         title: "Error",
-        description: "Failed to download image",
+        description: "Failed to download image. Try long-pressing the image to save.",
         variant: "destructive",
       });
     }
@@ -96,11 +126,6 @@ const CreatedImage = () => {
     }
   };
 
-  const handleEdit = () => {
-    navigate("/edit-image", { 
-      state: { imageUrl, prompt, creationId } 
-    });
-  };
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,hsl(220_60%_15%),hsl(220_40%_5%))] flex flex-col">
@@ -137,17 +162,6 @@ const CreatedImage = () => {
 
         {/* Action Buttons */}
         <div className="flex gap-4 justify-center flex-wrap">
-          <Button
-            onClick={handleEdit}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 py-6 text-lg"
-            style={{
-              boxShadow: "0 0 20px hsl(200_100%_70% / 0.4), 0 0 40px hsl(217_91%_60% / 0.2)"
-            }}
-          >
-            <Edit className="w-5 h-5 mr-2" />
-            Edit
-          </Button>
-
           <Button
             onClick={handleDownload}
             className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 py-6 text-lg"
