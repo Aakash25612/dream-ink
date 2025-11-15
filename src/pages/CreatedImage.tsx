@@ -114,13 +114,20 @@ const CreatedImage = () => {
         return;
       }
 
-      // Actual error occurred
-      console.error('Share error:', error);
-      toast({
-        title: "Error",
-        description: "Could not share image. Try again.",
-        variant: "destructive",
-      });
+      // Try clipboard as fallback
+      try {
+        await navigator.clipboard.writeText(imageUrl);
+        toast({
+          title: "Link Copied!",
+          description: "Image link copied to clipboard"
+        });
+      } catch {
+        toast({
+          title: "Error",
+          description: "Could not copy link. Try long-pressing the image to save or share.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setIsSharing(false);
     }
