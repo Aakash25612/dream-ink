@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, Download, Share2 } from "lucide-react";
+import { ArrowLeft, Download, Share2, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
 
 const CreatedImage = () => {
   const navigate = useNavigate();
@@ -74,7 +75,7 @@ const CreatedImage = () => {
     }
   };
 
-  const handleShare = async () => {
+  const handleCopyLink = async () => {
     try {
       // Check if Web Share API is available
       if (navigator.share) {
@@ -95,28 +96,32 @@ const CreatedImage = () => {
         }
       }
       
-      // Fallback: Copy from hidden input (more reliable in PWA)
-      const input = document.getElementById('image-url-input') as HTMLInputElement;
-      if (input) {
-        input.select();
-        document.execCommand('copy');
-        toast({
-          title: "Link Copied!",
-          description: "Image link copied to clipboard for sharing"
-        });
-      }
+      // Fallback to clipboard copy
+      await navigator.clipboard.writeText(imageUrl);
+      toast({
+        title: "Link Copied!",
+        description: "Share link copied to clipboard"
+      });
     } catch (error) {
       // User cancelled share dialog
       if ((error as Error).name === 'AbortError') {
         return;
       }
       
-      // Final fallback
-      toast({
-        title: "Error",
-        description: "Could not copy link. Try long-pressing the image to save or share.",
-        variant: "destructive"
-      });
+      // Try clipboard as fallback
+      try {
+        await navigator.clipboard.writeText(imageUrl);
+        toast({
+          title: "Link Copied!",
+          description: "Share link copied to clipboard"
+        });
+      } catch {
+        toast({
+          title: "Error",
+          description: "Could not copy link. Please try again.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -136,16 +141,6 @@ const CreatedImage = () => {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-center px-4 pb-8">
-        {/* Hidden input for clipboard access */}
-        <input
-          id="image-url-input"
-          type="text"
-          value={imageUrl}
-          readOnly
-          className="absolute opacity-0 pointer-events-none"
-          aria-hidden="true"
-        />
-        
         {/* Image Display */}
         <div className="w-full max-w-2xl mb-8">
           <div className="relative aspect-square bg-card/50 rounded-2xl overflow-hidden border-2 border-primary/30">
@@ -164,6 +159,32 @@ const CreatedImage = () => {
           )}
         </div>
 
+        {/* Share Link Section */}
+        <div className="w-full max-w-2xl mb-8">
+          <div className="bg-card border border-border rounded-2xl p-6">
+            <h2 className="text-lg font-semibold text-foreground mb-4 text-center">
+              Share Your Creation
+            </h2>
+            <div className="flex gap-2">
+              <Input
+                value={imageUrl}
+                readOnly
+                className="flex-1 bg-background text-foreground border-border"
+              />
+              <Button
+                onClick={handleCopyLink}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                style={{
+                  boxShadow: "0 0 20px hsl(200_100%_70% / 0.4), 0 0 40px hsl(217_91%_60% / 0.2)"
+                }}
+              >
+                <Copy className="w-5 h-5 mr-2" />
+                Copy
+              </Button>
+            </div>
+          </div>
+        </div>
+
         {/* Action Buttons */}
         <div className="flex gap-4 justify-center flex-wrap">
           <Button
@@ -175,17 +196,6 @@ const CreatedImage = () => {
           >
             <Download className="w-5 h-5 mr-2" />
             Download
-          </Button>
-
-          <Button
-            onClick={handleShare}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 py-6 text-lg"
-            style={{
-              boxShadow: "0 0 20px hsl(200_100%_70% / 0.4), 0 0 40px hsl(217_91%_60% / 0.2)"
-            }}
-          >
-            <Share2 className="w-5 h-5 mr-2" />
-            Share
           </Button>
         </div>
       </main>
