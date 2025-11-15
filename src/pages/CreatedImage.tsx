@@ -10,7 +10,7 @@ const CreatedImage = () => {
   const { toast } = useToast();
   const { imageUrl, prompt, creationId } = location.state || {};
 
-  const [isSharing, setIsSharing] = useState(false);
+  
 
   if (!imageUrl) {
     navigate("/home");
@@ -76,46 +76,43 @@ const CreatedImage = () => {
 
   const handleShare = async () => {
     try {
-      setIsSharing(true);
-
-      // Try Web Share API with URL first (simpler, more reliable in PWA)
+      // Check if Web Share API is available
       if (navigator.share) {
-        const shareDataUrl = {
+        const shareData = {
           title: 'My Cretera Creation',
           text: prompt || 'Check out my creation from Cretera! 🎨✨',
           url: imageUrl
         };
 
-        if (!navigator.canShare || navigator.canShare(shareDataUrl)) {
-          try {
-            await navigator.share(shareDataUrl);
-            toast({
-              title: "Shared!",
-              description: "Your creation has been shared"
-            });
-            return;
-          } catch (shareError) {
-            // If user cancels, just return
-            if ((shareError as Error).name === 'AbortError') {
-              return;
-            }
-          }
+        // Check if this specific data can be shared
+        if (!navigator.canShare || navigator.canShare(shareData)) {
+          await navigator.share(shareData);
+          toast({
+            title: "Shared!",
+            description: "Your creation has been shared"
+          });
+          return;
         }
       }
-
-      // Fallback: Direct clipboard copy (like referral link)
+      
+      // Fallback to clipboard copy
       await navigator.clipboard.writeText(imageUrl);
       toast({
         title: "Link Copied!",
         description: "Image link copied to clipboard for sharing"
       });
     } catch (error) {
-      // Final fallback for clipboard errors
+      // User cancelled share dialog
+      if ((error as Error).name === 'AbortError') {
+        return;
+      }
+      
+      // Try clipboard as fallback
       try {
         await navigator.clipboard.writeText(imageUrl);
         toast({
           title: "Link Copied!",
-          description: "Image link copied to clipboard"
+          description: "Share link copied to clipboard"
         });
       } catch {
         toast({
@@ -124,8 +121,6 @@ const CreatedImage = () => {
           variant: "destructive"
         });
       }
-    } finally {
-      setIsSharing(false);
     }
   };
 
@@ -178,14 +173,13 @@ const CreatedImage = () => {
 
           <Button
             onClick={handleShare}
-            disabled={isSharing}
             className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 py-6 text-lg"
             style={{
               boxShadow: "0 0 20px hsl(200_100%_70% / 0.4), 0 0 40px hsl(217_91%_60% / 0.2)"
             }}
           >
             <Share2 className="w-5 h-5 mr-2" />
-            {isSharing ? "Sharing..." : "Share"}
+            Share
           </Button>
         </div>
       </main>
