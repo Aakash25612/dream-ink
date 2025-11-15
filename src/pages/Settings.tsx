@@ -81,17 +81,7 @@ const Settings = () => {
         </Card>
 
         {/* Privacy & Security */}
-        <Card className="bg-card border-border p-6 space-y-4">
-          <div className="flex items-center gap-3 mb-4">
-            <Shield className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-semibold text-foreground">Privacy & Security</h3>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div className="text-foreground">Privacy Settings</div>
-            <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">Coming Soon</span>
-          </div>
-        </Card>
+        
 
         {/* Danger Zone */}
         
