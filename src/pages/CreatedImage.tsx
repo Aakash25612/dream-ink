@@ -201,40 +201,6 @@ const CreatedImage = () => {
           )}
         </div>
 
-        {/* Share Link Section */}
-        {!isLoadingUrl && (
-          <div className="w-full max-w-2xl mb-8">
-            <div className="bg-card border border-border rounded-2xl p-6">
-              <h2 className="text-lg font-semibold text-foreground mb-4 text-center">
-                Share Your Creation
-              </h2>
-              {shareableUrl ? (
-                <div className="flex gap-2">
-                  <Input
-                    value={shareableUrl}
-                    readOnly
-                    className="flex-1 bg-background text-foreground border-border"
-                  />
-                  <Button
-                    onClick={handleCopyLink}
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                    style={{
-                      boxShadow: "0 0 20px hsl(200_100%_70% / 0.4), 0 0 40px hsl(217_91%_60% / 0.2)"
-                    }}
-                  >
-                    <Copy className="w-5 h-5 mr-2" />
-                    Copy
-                  </Button>
-                </div>
-              ) : (
-                <div className="text-center text-muted-foreground">
-                  <p className="mb-2">This image doesn't have a shareable link yet.</p>
-                  <p className="text-sm">Download it to save and share!</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* Action Buttons */}
         <div className="flex gap-4 justify-center flex-wrap">
