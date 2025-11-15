@@ -42,6 +42,7 @@ serve(async (req) => {
       
       formData.append('image', blob, 'reference.png');
       formData.append('strength', '0.7'); // Control how much the output differs from input
+      formData.append('mode', 'image-to-image'); // Explicitly set mode for image-to-image
       apiUrl = 'https://api.stability.ai/v2beta/stable-image/generate/sd3';
     }
 
