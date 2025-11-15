@@ -78,43 +78,39 @@ const CreatedImage = () => {
     try {
       setIsSharing(true);
 
-      // Fetch and prepare the image for sharing
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      const file = new File([blob], 'cretera-creation.png', { type: 'image/png' });
-
-      // Check if Web Share API is available
+      // Try Web Share API with URL first (simpler, more reliable in PWA)
       if (navigator.share) {
-        const shareData = {
-          files: [file],
+        const shareDataUrl = {
           title: 'My Cretera Creation',
           text: prompt || 'Check out my creation from Cretera! 🎨✨',
+          url: imageUrl
         };
 
-        // Check if this specific data can be shared (optional for file sharing)
-        if (!navigator.canShare || navigator.canShare(shareData)) {
-          await navigator.share(shareData);
-          toast({
-            title: "Shared!",
-            description: "Your creation has been shared"
-          });
-          return;
+        if (!navigator.canShare || navigator.canShare(shareDataUrl)) {
+          try {
+            await navigator.share(shareDataUrl);
+            toast({
+              title: "Shared!",
+              description: "Your creation has been shared"
+            });
+            return;
+          } catch (shareError) {
+            // If user cancels, just return
+            if ((shareError as Error).name === 'AbortError') {
+              return;
+            }
+          }
         }
       }
 
-      // Fallback: copy image URL to clipboard
+      // Fallback: Direct clipboard copy (like referral link)
       await navigator.clipboard.writeText(imageUrl);
       toast({
-        title: "Link Copied",
+        title: "Link Copied!",
         description: "Image link copied to clipboard for sharing"
       });
     } catch (error) {
-      // User cancelled share dialog
-      if (error instanceof Error && error.name === 'AbortError') {
-        return;
-      }
-
-      // Try clipboard as fallback
+      // Final fallback for clipboard errors
       try {
         await navigator.clipboard.writeText(imageUrl);
         toast({
