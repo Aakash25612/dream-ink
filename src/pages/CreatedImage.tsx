@@ -1,19 +1,52 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Download, Share2, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
 
 const CreatedImage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const { imageUrl, prompt, creationId } = location.state || {};
+  const { imageUrl: initialImageUrl, prompt, creationId } = location.state || {};
 
-  
+  const [shareableUrl, setShareableUrl] = useState<string>("");
+  const [isLoadingUrl, setIsLoadingUrl] = useState(true);
 
-  if (!imageUrl) {
+  useEffect(() => {
+    const getShareableUrl = async () => {
+      // If imageUrl is already a valid HTTP URL, use it
+      if (initialImageUrl && initialImageUrl.startsWith('http')) {
+        setShareableUrl(initialImageUrl);
+        setIsLoadingUrl(false);
+        return;
+      }
+
+      // If we have a creationId, fetch the stored URL from database
+      if (creationId) {
+        try {
+          const { data, error } = await supabase
+            .from('creations')
+            .select('image_url')
+            .eq('id', creationId)
+            .single();
+
+          if (data && !error && data.image_url.startsWith('http')) {
+            setShareableUrl(data.image_url);
+          }
+        } catch (error) {
+          console.error('Error fetching shareable URL:', error);
+        }
+      }
+      setIsLoadingUrl(false);
+    };
+
+    getShareableUrl();
+  }, [initialImageUrl, creationId]);
+
+  if (!initialImageUrl) {
     navigate("/home");
     return null;
   }
@@ -23,7 +56,7 @@ const CreatedImage = () => {
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       
       // Fetch the image
-      const response = await fetch(imageUrl);
+      const response = await fetch(initialImageUrl);
       const blob = await response.blob();
       const fileName = `cretera-${prompt?.slice(0, 30).replace(/\s+/g, '-') || 'creation'}.png`;
       
@@ -76,13 +109,22 @@ const CreatedImage = () => {
   };
 
   const handleCopyLink = async () => {
+    if (!shareableUrl) {
+      toast({
+        title: "Cannot Share",
+        description: "This image doesn't have a shareable link yet. Try downloading it instead.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       // Check if Web Share API is available
       if (navigator.share) {
         const shareData = {
           title: 'My Cretera Creation',
           text: prompt || 'Check out my creation from Cretera! 🎨✨',
-          url: imageUrl
+          url: shareableUrl
         };
 
         // Check if this specific data can be shared
@@ -97,7 +139,7 @@ const CreatedImage = () => {
       }
       
       // Fallback to clipboard copy
-      await navigator.clipboard.writeText(imageUrl);
+      await navigator.clipboard.writeText(shareableUrl);
       toast({
         title: "Link Copied!",
         description: "Share link copied to clipboard"
@@ -110,7 +152,7 @@ const CreatedImage = () => {
       
       // Try clipboard as fallback
       try {
-        await navigator.clipboard.writeText(imageUrl);
+        await navigator.clipboard.writeText(shareableUrl);
         toast({
           title: "Link Copied!",
           description: "Share link copied to clipboard"
@@ -145,7 +187,7 @@ const CreatedImage = () => {
         <div className="w-full max-w-2xl mb-8">
           <div className="relative aspect-square bg-card/50 rounded-2xl overflow-hidden border-2 border-primary/30">
             <img
-              src={imageUrl}
+              src={initialImageUrl}
               alt={prompt || "Creation"}
               className="w-full h-full object-contain"
             />
@@ -160,30 +202,39 @@ const CreatedImage = () => {
         </div>
 
         {/* Share Link Section */}
-        <div className="w-full max-w-2xl mb-8">
-          <div className="bg-card border border-border rounded-2xl p-6">
-            <h2 className="text-lg font-semibold text-foreground mb-4 text-center">
-              Share Your Creation
-            </h2>
-            <div className="flex gap-2">
-              <Input
-                value={imageUrl}
-                readOnly
-                className="flex-1 bg-background text-foreground border-border"
-              />
-              <Button
-                onClick={handleCopyLink}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                style={{
-                  boxShadow: "0 0 20px hsl(200_100%_70% / 0.4), 0 0 40px hsl(217_91%_60% / 0.2)"
-                }}
-              >
-                <Copy className="w-5 h-5 mr-2" />
-                Copy
-              </Button>
+        {!isLoadingUrl && (
+          <div className="w-full max-w-2xl mb-8">
+            <div className="bg-card border border-border rounded-2xl p-6">
+              <h2 className="text-lg font-semibold text-foreground mb-4 text-center">
+                Share Your Creation
+              </h2>
+              {shareableUrl ? (
+                <div className="flex gap-2">
+                  <Input
+                    value={shareableUrl}
+                    readOnly
+                    className="flex-1 bg-background text-foreground border-border"
+                  />
+                  <Button
+                    onClick={handleCopyLink}
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                    style={{
+                      boxShadow: "0 0 20px hsl(200_100%_70% / 0.4), 0 0 40px hsl(217_91%_60% / 0.2)"
+                    }}
+                  >
+                    <Copy className="w-5 h-5 mr-2" />
+                    Copy
+                  </Button>
+                </div>
+              ) : (
+                <div className="text-center text-muted-foreground">
+                  <p className="mb-2">This image doesn't have a shareable link yet.</p>
+                  <p className="text-sm">Download it to save and share!</p>
+                </div>
+              )}
             </div>
           </div>
-        </div>
+        )}
 
         {/* Action Buttons */}
         <div className="flex gap-4 justify-center flex-wrap">
