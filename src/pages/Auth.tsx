@@ -2,21 +2,28 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { ArrowLeft, Mail } from "lucide-react";
+import { ArrowLeft, Mail, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
+
 const emailSchema = z.string().email("Please enter a valid email address");
+
+// Test credentials for Play Store review
+const TEST_EMAIL = "a12345@gmail.com";
+const TEST_PASSWORD = "a12345";
 
 const Auth = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [showTestLogin, setShowTestLogin] = useState(false);
   useEffect(() => {
     // Listen for auth changes first
     const {
@@ -110,6 +117,54 @@ const Auth = () => {
         toast.error("Failed to send login code. Please try again.");
         console.error("Error sending login code:", error);
       }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleTestLogin = async () => {
+    if (email.trim().toLowerCase() !== TEST_EMAIL || password !== TEST_PASSWORD) {
+      toast.error("Invalid test credentials");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Try to sign in first
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: TEST_EMAIL,
+        password: TEST_PASSWORD,
+      });
+
+      if (signInError) {
+        // If user doesn't exist, create the account first
+        if (signInError.message.includes("Invalid login credentials")) {
+          const { error: signUpError } = await supabase.auth.signUp({
+            email: TEST_EMAIL,
+            password: TEST_PASSWORD,
+            options: {
+              emailRedirectTo: `${window.location.origin}/auth`,
+            },
+          });
+
+          if (signUpError) throw signUpError;
+
+          // Try signing in again after signup
+          const { error: retryError } = await supabase.auth.signInWithPassword({
+            email: TEST_EMAIL,
+            password: TEST_PASSWORD,
+          });
+
+          if (retryError) throw retryError;
+        } else {
+          throw signInError;
+        }
+      }
+
+      toast.success("Test login successful!");
+    } catch (error: any) {
+      toast.error(error.message || "Test login failed");
+      console.error("Test login error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -220,6 +275,44 @@ const Auth = () => {
             >
               {isLoading ? "Sending..." : "Send Code"}
             </Button>
+
+            {/* Test Login Section for Play Store Review */}
+            <div className="pt-4 border-t border-border/30">
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="w-full text-muted-foreground border-border/50 rounded-full"
+                onClick={() => setShowTestLogin(!showTestLogin)}
+              >
+                Test Login
+              </Button>
+
+              {showTestLogin && (
+                <div className="mt-4 space-y-4">
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      type="password"
+                      placeholder="Enter test password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-12 h-14 text-lg bg-card border-2 border-border/30 rounded-full"
+                      disabled={isLoading}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    size="lg"
+                    className="w-full bg-muted hover:bg-muted/80 text-foreground text-lg py-6 rounded-full"
+                    disabled={isLoading || !email || !password}
+                    onClick={handleTestLogin}
+                  >
+                    {isLoading ? "Logging in..." : "Login with Test Credentials"}
+                  </Button>
+                </div>
+              )}
+            </div>
           </form>
         ) : (
           <div className="w-full max-w-md space-y-6">
