@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -17,145 +17,146 @@ interface UserCredits {
   last_usage_date: string | null;
 }
 
+interface CombinedUserData {
+  credits: UserCredits | null;
+  signupDate: string | null;
+}
+
+// Cache key for credits
+const CREDITS_QUERY_KEY = ["user-credits"];
+
+// Fetch credits with combined queries - reduces DB calls from 4+ to 1-2
+const fetchCreditsData = async (): Promise<{ credits: UserCredits | null; totalCredits: number }> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { credits: null, totalCredits: 0 };
+
+  // Single combined query: fetch credits + profile in parallel
+  const [creditsResult, profileResult] = await Promise.all([
+    supabase
+      .from('user_credits')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle(),
+    supabase
+      .from('profiles')
+      .select('signup_date')
+      .eq('id', user.id)
+      .maybeSingle()
+  ]);
+
+  if (creditsResult.error) throw creditsResult.error;
+  
+  let credits = creditsResult.data;
+  if (!credits) return { credits: null, totalCredits: 0 };
+
+  const today = new Date().toISOString().split('T')[0];
+  const profile = profileResult.data;
+  
+  // Check subscription expiration - only call RPC if actually expired
+  if (credits.subscription_end_date && new Date(credits.subscription_end_date) <= new Date() && credits.subscription_credits > 0) {
+    await supabase.rpc('expire_subscription_credits');
+    // Refetch just credits after expiration
+    const { data: refreshedCredits } = await supabase
+      .from('user_credits')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (refreshedCredits) credits = refreshedCredits;
+  }
+
+  // Check if we need to refresh daily credits (within first 7 days)
+  const lastCreditDate = credits.daily_free_credits_date;
+  if (lastCreditDate !== today && profile?.signup_date) {
+    const signupDate = new Date(profile.signup_date);
+    const daysSinceSignup = Math.floor(
+      (new Date().getTime() - signupDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (daysSinceSignup < 7) {
+      await supabase
+        .from('user_credits')
+        .update({
+          daily_free_credits: 1,
+          daily_free_credits_date: today
+        })
+        .eq('user_id', user.id);
+      
+      // Update local state instead of refetching
+      credits = {
+        ...credits,
+        daily_free_credits: 1,
+        daily_free_credits_date: today
+      };
+    }
+  }
+
+  // Calculate total
+  const total = 
+    (credits.free_signup_credits || 0) + 
+    (credits.daily_free_credits || 0) + 
+    (credits.referral_credits || 0) + 
+    (credits.subscription_end_date && new Date(credits.subscription_end_date) > new Date() 
+      ? (credits.subscription_credits || 0) 
+      : 0);
+
+  return { credits, totalCredits: total };
+};
+
 export const useCredits = () => {
-  const [credits, setCredits] = useState<UserCredits | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [totalCredits, setTotalCredits] = useState(0);
+  const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const fetchCredits = async () => {
-    try {
+  // Use React Query with staleTime to prevent unnecessary refetches
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: CREDITS_QUERY_KEY,
+    queryFn: fetchCreditsData,
+    staleTime: 30000, // 30 seconds - data considered fresh
+    gcTime: 300000, // 5 minutes - keep in cache
+    refetchOnWindowFocus: false, // Prevent refetch on tab focus
+    retry: 1,
+  });
+
+  const credits = data?.credits ?? null;
+  const totalCredits = data?.totalCredits ?? 0;
+
+  // Mutation for using credits - optimistic update
+  const useCreditsMutation = useMutation({
+    mutationFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // First, expire any expired subscriptions
-      await supabase.rpc('expire_subscription_credits');
-
-      // Reset daily credits if needed
-      await supabase.rpc('reset_daily_credits');
-
-      const { data, error } = await supabase
-        .from('user_credits')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error) throw error;
-
-      if (data) {
-        setCredits(data);
-        
-        // Check if we need to refresh daily credits for first 7 days
-        const today = new Date().toISOString().split('T')[0];
-        const lastCreditDate = data.daily_free_credits_date;
-        
-        if (lastCreditDate !== today) {
-          // Check if user is within first 7 days
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('signup_date')
-            .eq('id', user.id)
-            .single();
-
-          if (profile) {
-            const signupDate = new Date(profile.signup_date);
-            const daysSinceSignup = Math.floor(
-              (new Date().getTime() - signupDate.getTime()) / (1000 * 60 * 60 * 24)
-            );
-
-            if (daysSinceSignup < 7) {
-              // Add 1 daily credit
-              const { error: updateError } = await supabase
-                .from('user_credits')
-                .update({
-                  daily_free_credits: 1,
-                  daily_free_credits_date: today
-                })
-                .eq('user_id', user.id);
-
-              if (!updateError) {
-                // Refresh credits after update
-                await fetchCredits();
-                return;
-              }
-            }
-          }
-        }
-
-        // Calculate total available credits (excluding expired subscriptions)
-        const total = 
-          data.free_signup_credits + 
-          data.daily_free_credits + 
-          data.referral_credits + 
-          (data.subscription_end_date && new Date(data.subscription_end_date) > new Date() 
-            ? data.subscription_credits 
-            : 0);
-        
-        setTotalCredits(total);
-      }
-    } catch (error) {
-      console.error('Error fetching credits:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const useCredit = async (): Promise<boolean> => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
-
-      if (!credits) return false;
+      if (!user || !credits) throw new Error('No user or credits');
 
       // Check if subscription has expired
       if (credits.subscription_end_date && new Date(credits.subscription_end_date) <= new Date()) {
-        // Expire the subscription
         await supabase.rpc('expire_subscription_credits');
-        await fetchCredits();
+        throw new Error('subscription_expired');
       }
 
       // Check if user has any credits
       if (totalCredits <= 0) {
-        toast({
-          title: "You've hit your creative limit.",
-          description: "Upgrade to create without limits.",
-          variant: "destructive"
-        });
-        return false;
+        throw new Error('no_credits');
       }
 
       // Check daily limit for subscription users
-      if (credits.subscription_credits > 0 && credits.subscription_end_date && new Date(credits.subscription_end_date) > new Date()) {
-        const today = new Date().toISOString().split('T')[0];
-        const lastUsage = credits.last_usage_date;
+      const today = new Date().toISOString().split('T')[0];
+      if (credits.subscription_credits > 0 && 
+          credits.subscription_end_date && 
+          new Date(credits.subscription_end_date) > new Date()) {
         
-        // Reset daily counter if it's a new day
+        const lastUsage = credits.last_usage_date;
+        let usedToday = credits.used_credits_today || 0;
+        
+        // Reset if new day
         if (lastUsage !== today) {
-          await supabase
-            .from('user_credits')
-            .update({
-              used_credits_today: 0,
-              last_usage_date: today
-            })
-            .eq('user_id', user.id);
-          
-          // Refresh to get updated data
-          await fetchCredits();
+          usedToday = 0;
         }
 
-        // Check if daily limit reached
-        if (credits.used_credits_today >= credits.daily_limit) {
-          toast({
-            title: "Daily limit reached.",
-            description: "Your daily credits will refresh tomorrow.",
-            variant: "destructive"
-          });
-          return false;
+        if (usedToday >= credits.daily_limit) {
+          throw new Error('daily_limit');
         }
       }
 
-      // Deduct credits in priority order: signup -> daily -> referral -> subscription
-      let updateData: Partial<UserCredits> = {};
+      // Determine which credit type to deduct
+      let updateData: Record<string, any> = {};
 
       if (credits.free_signup_credits > 0) {
         updateData.free_signup_credits = credits.free_signup_credits - 1;
@@ -166,7 +167,7 @@ export const useCredits = () => {
       } else if (credits.subscription_credits > 0) {
         updateData.subscription_credits = credits.subscription_credits - 1;
         updateData.used_credits_today = (credits.used_credits_today || 0) + 1;
-        updateData.last_usage_date = new Date().toISOString().split('T')[0];
+        updateData.last_usage_date = today;
       }
 
       const { error } = await supabase
@@ -175,24 +176,64 @@ export const useCredits = () => {
         .eq('user_id', user.id);
 
       if (error) throw error;
+      return updateData;
+    },
+    onSuccess: (updateData) => {
+      // Optimistic update - update cache directly instead of refetching
+      queryClient.setQueryData(CREDITS_QUERY_KEY, (old: any) => {
+        if (!old?.credits) return old;
+        const newCredits = { ...old.credits, ...updateData };
+        const newTotal = 
+          (newCredits.free_signup_credits || 0) + 
+          (newCredits.daily_free_credits || 0) + 
+          (newCredits.referral_credits || 0) + 
+          (newCredits.subscription_end_date && new Date(newCredits.subscription_end_date) > new Date() 
+            ? (newCredits.subscription_credits || 0) 
+            : 0);
+        return { credits: newCredits, totalCredits: newTotal };
+      });
+    },
+    onError: (error: Error) => {
+      if (error.message === 'subscription_expired') {
+        queryClient.invalidateQueries({ queryKey: CREDITS_QUERY_KEY });
+      }
+    }
+  });
 
-      // Refresh credits
-      await fetchCredits();
+  const useCredit = async (): Promise<boolean> => {
+    try {
+      await useCreditsMutation.mutateAsync();
       return true;
-    } catch (error) {
-      console.error('Error using credit:', error);
+    } catch (error: any) {
+      if (error.message === 'no_credits') {
+        toast({
+          title: "You've hit your creative limit.",
+          description: "Upgrade to create without limits.",
+          variant: "destructive"
+        });
+      } else if (error.message === 'daily_limit') {
+        toast({
+          title: "Daily limit reached.",
+          description: "Your daily credits will refresh tomorrow.",
+          variant: "destructive"
+        });
+      } else if (error.message === 'subscription_expired') {
+        // Silently handle - will refetch
+      } else {
+        console.error('Error using credit:', error);
+      }
       return false;
     }
   };
 
-  useEffect(() => {
-    fetchCredits();
-  }, []);
+  const fetchCredits = () => {
+    refetch();
+  };
 
   return {
     credits,
     totalCredits,
-    loading,
+    loading: isLoading,
     fetchCredits,
     useCredit
   };

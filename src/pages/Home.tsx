@@ -24,22 +24,23 @@ const Home = () => {
   const { toast } = useToast();
   const { totalCredits, useCredit, loading: creditsLoading } = useCredits();
   
+  // Only check referral rewards once on mount, with debounce
   useEffect(() => {
+    let isMounted = true;
     const checkReferralReward = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user || !isMounted) return;
 
-      // Check if there are any newly completed referrals
+      // Only fetch if user might have pending rewards - use limit 1 for efficiency
       const { data: recentReferrals } = await supabase
         .from('referrals')
-        .select('*')
+        .select('id')
         .eq('referrer_id', user.id)
         .eq('credits_awarded', true)
         .gte('completed_at', new Date(Date.now() - 5000).toISOString())
-        .order('completed_at', { ascending: false })
         .limit(1);
 
-      if (recentReferrals && recentReferrals.length > 0) {
+      if (isMounted && recentReferrals && recentReferrals.length > 0) {
         toast({
           title: "Cretera Connect Reward Unlocked",
           description: "You've earned 2 credits from a referral!",
@@ -48,6 +49,7 @@ const Home = () => {
     };
 
     checkReferralReward();
+    return () => { isMounted = false; };
   }, [toast]);
   
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
