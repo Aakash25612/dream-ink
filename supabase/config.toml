@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.send-magic-link]
 verify_jwt = false
+
+[functions.cleanup-old-images]
+verify_jwt = false
