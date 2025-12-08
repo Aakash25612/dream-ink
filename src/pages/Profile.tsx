@@ -16,28 +16,27 @@ const Profile = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserEmail(user.email || "");
-        
-        // Fetch profile
-        const { data: profile } = await supabase
+      if (!user) return;
+      
+      setUserEmail(user.email || "");
+      
+      // Fetch profile and creations count in parallel - reduces 3 queries to 2 parallel
+      const [profileResult, creationsResult] = await Promise.all([
+        supabase
           .from("profiles")
           .select("display_name")
           .eq("id", user.id)
-          .single();
-        
-        if (profile) {
-          setDisplayName(profile.display_name || "User");
-        }
-
-        // Fetch total creations
-        const { count } = await supabase
+          .maybeSingle(),
+        supabase
           .from("creations")
           .select("*", { count: "exact", head: true })
-          .eq("user_id", user.id);
-        
-        setTotalCreations(count || 0);
+          .eq("user_id", user.id)
+      ]);
+      
+      if (profileResult.data) {
+        setDisplayName(profileResult.data.display_name || "User");
       }
+      setTotalCreations(creationsResult.count || 0);
     };
 
     fetchUserData();
