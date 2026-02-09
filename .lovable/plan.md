@@ -1,24 +1,34 @@
 
 
-## Fix: Referral Code Not Showing
+## Show Referral Code Only for New Users
 
-### Root Cause
-The `profiles` table SELECT RLS policy ("Anyone can lookup referral codes") is set as **restrictive** (`Permissive: No`) instead of **permissive**. 
+### Problem
+The referral code input currently appears for all users on the sign-in screen. It should only be shown to new users during signup, since existing users don't need it.
 
-In PostgreSQL RLS, you need at least one **permissive** policy to allow access. Restrictive policies only further narrow access granted by permissive ones. Since there's no permissive SELECT policy on `profiles`, all SELECT queries return zero rows -- which is why the referral code appears empty.
+### Solution
+Since Supabase OTP uses the same flow for sign-in and sign-up, we need to check whether the email belongs to an existing user before showing the referral code field.
 
-### Fix
-Run a database migration to:
-1. Drop the current restrictive SELECT policy on `profiles`
-2. Re-create it as a **permissive** policy
+**Approach**: After the user enters their email and before sending the OTP, we query the `profiles` table to check if a profile exists for that email. If no profile is found, we show the referral code field as a second step before sending the code.
 
-```sql
-DROP POLICY IF EXISTS "Anyone can lookup referral codes" ON public.profiles;
+### Implementation
 
-CREATE POLICY "Anyone can lookup referral codes"
-  ON public.profiles
-  FOR SELECT
-  USING (true);
-```
+**File: `src/pages/Auth.tsx`**
 
-This single change will fix the issue. No frontend code changes are needed since `Referral.tsx` already correctly fetches the code from the `profiles` table.
+1. Add a new state `isNewUser` (initially `null` -- unknown)
+2. When the user submits their email:
+   - First, check if a user with that email already exists by looking up profiles via Supabase auth admin or by attempting a lightweight check
+   - Since we can't query auth.users from the client, we'll use a simpler UX: add a "Have a referral code?" toggle link that only shows a collapsible referral code input. This way existing users can ignore it, and new users can optionally expand it
+3. Alternatively (simpler and better UX): Replace the always-visible referral code input with a small "Have a referral code?" text button that expands to show the input when tapped. This keeps the sign-in screen clean for returning users while still being accessible for new signups.
+
+### Recommended Approach: Collapsible Referral Code
+
+- Remove the always-visible referral code input
+- Add a subtle "Have a referral code?" text link below the email field
+- Tapping it reveals the referral code input with a smooth animation
+- This keeps the screen clean for returning users (majority of visits) while still accessible for new users
+
+### Changes to `src/pages/Auth.tsx`:
+- Add `showReferralInput` boolean state (default: `false`)
+- Replace the referral code input div with a toggle button + conditionally rendered input
+- Keep all existing referral code logic (passing it to `signInWithOtp`) unchanged
+
