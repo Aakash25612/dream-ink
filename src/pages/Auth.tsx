@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { ArrowLeft, Mail, Lock } from "lucide-react";
+import { ArrowLeft, Mail, Lock, Gift } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +19,7 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
+  const [referralCode, setReferralCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
@@ -93,15 +94,11 @@ const Auth = () => {
     try {
       emailSchema.parse(email);
 
-      const urlParams = new URLSearchParams(window.location.search);
-      const referrerId = urlParams.get('ref');
-      const redirectTo = `${window.location.origin}/auth${referrerId ? `?ref=${referrerId}` : ''}`;
-
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
-          emailRedirectTo: redirectTo,
-          data: referrerId ? { referrer_id: referrerId } : undefined
+          emailRedirectTo: `${window.location.origin}/auth`,
+          data: referralCode.trim() ? { referral_code: referralCode.trim().toUpperCase() } : undefined
         },
       });
 
@@ -202,15 +199,11 @@ const Auth = () => {
     
     setIsLoading(true);
     try {
-      const urlParams = new URLSearchParams(window.location.search);
-      const referrerId = urlParams.get('ref');
-      const redirectTo = `${window.location.origin}/auth${referrerId ? `?ref=${referrerId}` : ''}`;
-
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
-          emailRedirectTo: redirectTo,
-          data: referrerId ? { referrer_id: referrerId } : undefined
+          emailRedirectTo: `${window.location.origin}/auth`,
+          data: referralCode.trim() ? { referral_code: referralCode.trim().toUpperCase() } : undefined
         },
       });
 
@@ -263,6 +256,18 @@ const Auth = () => {
                   className="pl-12 h-14 text-lg bg-card border-2 border-primary/30 rounded-full"
                   disabled={isLoading}
                   required
+                />
+              </div>
+              <div className="relative">
+                <Gift className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Referral code (optional)"
+                  value={referralCode}
+                  onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                  className="pl-12 h-14 text-lg bg-card border-2 border-border/30 rounded-full"
+                  disabled={isLoading}
+                  maxLength={10}
                 />
               </div>
             </div>
