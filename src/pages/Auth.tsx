@@ -25,6 +25,7 @@ const Auth = () => {
   const [emailSent, setEmailSent] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [showTestLogin, setShowTestLogin] = useState(false);
+  const [showReferralInput, setShowReferralInput] = useState(false);
   useEffect(() => {
     // Listen for auth changes first
     const {
@@ -258,17 +259,30 @@ const Auth = () => {
                   required
                 />
               </div>
-              <div className="relative">
-                <Gift className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Referral code (optional)"
-                  value={referralCode}
-                  onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-                  className="pl-12 h-14 text-lg bg-card border-2 border-border/30 rounded-full"
-                  disabled={isLoading}
-                  maxLength={10}
-                />
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowReferralInput(!showReferralInput)}
+                  className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors pl-2"
+                >
+                  <Gift className="w-4 h-4" />
+                  {showReferralInput ? "Hide referral code" : "Have a referral code?"}
+                </button>
+                {showReferralInput && (
+                  <div className="relative mt-2">
+                    <Gift className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      type="text"
+                      placeholder="Enter referral code"
+                      value={referralCode}
+                      onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                      className="pl-12 h-14 text-lg bg-card border-2 border-border/30 rounded-full"
+                      disabled={isLoading}
+                      maxLength={10}
+                      autoFocus
+                    />
+                  </div>
+                )}
               </div>
             </div>
             
