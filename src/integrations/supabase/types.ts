@@ -45,6 +45,7 @@ export type Database = {
           email: string | null
           id: string
           is_first_time: boolean | null
+          referral_code: string
           signup_date: string | null
           updated_at: string | null
         }
@@ -54,6 +55,7 @@ export type Database = {
           email?: string | null
           id: string
           is_first_time?: boolean | null
+          referral_code?: string
           signup_date?: string | null
           updated_at?: string | null
         }
@@ -63,6 +65,7 @@ export type Database = {
           email?: string | null
           id?: string
           is_first_time?: boolean | null
+          referral_code?: string
           signup_date?: string | null
           updated_at?: string | null
         }
@@ -180,6 +183,7 @@ export type Database = {
         Returns: undefined
       }
       expire_subscription_credits: { Args: never; Returns: undefined }
+      generate_referral_code: { Args: never; Returns: string }
       reset_daily_credits: { Args: never; Returns: undefined }
     }
     Enums: {
