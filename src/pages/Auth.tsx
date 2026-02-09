@@ -25,60 +25,48 @@ const Auth = () => {
   const [emailSent, setEmailSent] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [showTestLogin, setShowTestLogin] = useState(false);
-  const [showReferralInput, setShowReferralInput] = useState(false);
+  const [showReferralStep, setShowReferralStep] = useState(false);
+  const [newUserId, setNewUserId] = useState<string | null>(null);
+
   useEffect(() => {
-    // Listen for auth changes first
     const {
-      data: {
-        subscription
-      }
+      data: { subscription }
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session && event === 'SIGNED_IN') {
-        // Check if this is a first-time user
-        const {
-          data: profile
-        } = await supabase.from('profiles').select('is_first_time').eq('id', session.user.id).single();
-        toast.success("Signed in successfully!");
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_first_time')
+          .eq('id', session.user.id)
+          .single();
 
-        // Navigate to intro screen for first-time users, splash for returning users
         if (profile?.is_first_time) {
-          // Update is_first_time to false
-          await supabase.from('profiles').update({
-            is_first_time: false
-          }).eq('id', session.user.id);
-          navigate("/intro", {
-            replace: true
-          });
+          // New user - show referral code step before proceeding
+          setNewUserId(session.user.id);
+          setShowReferralStep(true);
+          toast.success("Account created! Welcome to Cretera.");
         } else {
-          navigate("/splash", {
-            replace: true
-          });
+          toast.success("Signed in successfully!");
+          navigate("/splash", { replace: true });
         }
       }
     });
 
-    // Then check if user is already logged in
-    supabase.auth.getSession().then(async ({
-      data: {
-        session
-      }
-    }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
-        // For already logged in users, show splash screen
-        const {
-          data: profile
-        } = await supabase.from('profiles').select('is_first_time').eq('id', session.user.id).single();
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_first_time')
+          .eq('id', session.user.id)
+          .single();
         if (profile?.is_first_time) {
-          navigate("/intro", {
-            replace: true
-          });
+          setNewUserId(session.user.id);
+          setShowReferralStep(true);
         } else {
-          navigate("/splash", {
-            replace: true
-          });
+          navigate("/splash", { replace: true });
         }
       }
     });
+
     return () => subscription.unsubscribe();
   }, [navigate]);
 
@@ -88,6 +76,7 @@ const Auth = () => {
       return () => clearTimeout(timer);
     }
   }, [resendCooldown]);
+
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -99,7 +88,6 @@ const Auth = () => {
         email: email.trim(),
         options: {
           emailRedirectTo: `${window.location.origin}/auth`,
-          data: referralCode.trim() ? { referral_code: referralCode.trim().toUpperCase() } : undefined
         },
       });
 
@@ -128,14 +116,12 @@ const Auth = () => {
 
     setIsLoading(true);
     try {
-      // Try to sign in first
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: TEST_EMAIL,
         password: TEST_PASSWORD,
       });
 
       if (signInError) {
-        // If user doesn't exist, create the account first
         if (signInError.message.includes("Invalid login credentials")) {
           const { error: signUpError } = await supabase.auth.signUp({
             email: TEST_EMAIL,
@@ -144,15 +130,12 @@ const Auth = () => {
               emailRedirectTo: `${window.location.origin}/auth`,
             },
           });
-
           if (signUpError) throw signUpError;
 
-          // Try signing in again after signup
           const { error: retryError } = await supabase.auth.signInWithPassword({
             email: TEST_EMAIL,
             password: TEST_PASSWORD,
           });
-
           if (retryError) throw retryError;
         } else {
           throw signInError;
@@ -184,8 +167,7 @@ const Auth = () => {
       });
 
       if (error) throw error;
-
-      toast.success("Successfully signed in!");
+      // Navigation handled by onAuthStateChange
     } catch (error: any) {
       toast.error(error.message || "Invalid code. Please try again.");
       console.error("Error verifying OTP:", error);
@@ -204,7 +186,6 @@ const Auth = () => {
         email: email.trim(),
         options: {
           emailRedirectTo: `${window.location.origin}/auth`,
-          data: referralCode.trim() ? { referral_code: referralCode.trim().toUpperCase() } : undefined
         },
       });
 
@@ -225,7 +206,124 @@ const Auth = () => {
     setOtp("");
     setEmail("");
   };
-  return <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,hsl(220_60%_15%),hsl(220_40%_5%))] flex flex-col p-4">
+
+  const handleReferralSubmit = async () => {
+    if (!referralCode.trim() || !newUserId) {
+      handleSkipReferral();
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Look up the referrer by their referral code
+      const { data: referrer, error: lookupError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('referral_code', referralCode.trim().toUpperCase())
+        .maybeSingle();
+
+      if (lookupError) throw lookupError;
+
+      if (!referrer) {
+        toast.error("Invalid referral code. Please check and try again.");
+        setIsLoading(false);
+        return;
+      }
+
+      if (referrer.id === newUserId) {
+        toast.error("You can't use your own referral code!");
+        setIsLoading(false);
+        return;
+      }
+
+      // Process the referral
+      const { error: referralError } = await supabase.rpc('complete_referral', {
+        p_referrer_id: referrer.id,
+        p_referred_user_id: newUserId,
+      });
+
+      if (referralError) {
+        console.error("Referral error:", referralError);
+        toast.error("Could not apply referral code, but your account is ready!");
+      } else {
+        toast.success("Referral code applied! Bonus credits awarded.");
+      }
+
+      // Mark as no longer first time and navigate
+      await supabase.from('profiles').update({ is_first_time: false }).eq('id', newUserId);
+      navigate("/intro", { replace: true });
+    } catch (error) {
+      console.error("Referral submit error:", error);
+      toast.error("Something went wrong. Skipping referral.");
+      await supabase.from('profiles').update({ is_first_time: false }).eq('id', newUserId!);
+      navigate("/intro", { replace: true });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSkipReferral = async () => {
+    if (newUserId) {
+      await supabase.from('profiles').update({ is_first_time: false }).eq('id', newUserId);
+    }
+    navigate("/intro", { replace: true });
+  };
+
+  // Referral code step for new users
+  if (showReferralStep) {
+    return (
+      <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,hsl(220_60%_15%),hsl(220_40%_5%))] flex flex-col p-4">
+        <div className="flex-1 flex flex-col items-center justify-center space-y-12 max-w-xl mx-auto w-full px-4">
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto">
+              <Gift className="w-8 h-8 text-primary" />
+            </div>
+            <h1 className="text-3xl font-bold text-foreground">Welcome to Cretera!</h1>
+            <p className="text-muted-foreground text-lg">
+              Got a referral code from a friend? Enter it below to get bonus credits.
+            </p>
+          </div>
+
+          <div className="w-full max-w-md space-y-6">
+            <div className="relative">
+              <Gift className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Enter referral code (e.g. CRT-XXXXXX)"
+                value={referralCode}
+                onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                className="pl-12 h-14 text-lg bg-card border-2 border-primary/30 rounded-full"
+                disabled={isLoading}
+                maxLength={10}
+                autoFocus
+              />
+            </div>
+
+            <Button
+              onClick={handleReferralSubmit}
+              size="lg"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-lg py-6 rounded-full"
+              disabled={isLoading || !referralCode.trim()}
+            >
+              {isLoading ? "Applying..." : "Apply Referral Code"}
+            </Button>
+
+            <Button
+              variant="ghost"
+              onClick={handleSkipReferral}
+              className="w-full text-muted-foreground hover:text-foreground"
+              disabled={isLoading}
+            >
+              Skip for now
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,hsl(220_60%_15%),hsl(220_40%_5%))] flex flex-col p-4">
       {/* Header */}
       <header className="flex items-center gap-4 mb-8">
         <button onClick={() => navigate("/")} className="w-10 h-10 rounded-full bg-card hover:bg-card/80 flex items-center justify-center">
@@ -258,31 +356,6 @@ const Auth = () => {
                   disabled={isLoading}
                   required
                 />
-              </div>
-              <div>
-                <button
-                  type="button"
-                  onClick={() => setShowReferralInput(!showReferralInput)}
-                  className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors pl-2"
-                >
-                  <Gift className="w-4 h-4" />
-                  {showReferralInput ? "Hide referral code" : "Have a referral code?"}
-                </button>
-                {showReferralInput && (
-                  <div className="relative mt-2">
-                    <Gift className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <Input
-                      type="text"
-                      placeholder="Enter referral code"
-                      value={referralCode}
-                      onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-                      className="pl-12 h-14 text-lg bg-card border-2 border-border/30 rounded-full"
-                      disabled={isLoading}
-                      maxLength={10}
-                      autoFocus
-                    />
-                  </div>
-                )}
               </div>
             </div>
             
@@ -394,6 +467,8 @@ const Auth = () => {
           </div>
         )}
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Auth;
