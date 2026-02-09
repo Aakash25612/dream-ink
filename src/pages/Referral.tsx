@@ -22,11 +22,16 @@ const Referral = () => {
   }, []);
 
   const fetchReferralCode = async (uid: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("profiles")
       .select("referral_code")
       .eq("id", uid)
-      .single();
+      .maybeSingle();
+    if (error) {
+      console.error("Failed to fetch referral code:", error);
+      toast({ title: "Error", description: "Could not load your referral code.", variant: "destructive" });
+      return;
+    }
     if (data?.referral_code) {
       setReferralCode(data.referral_code);
     }
